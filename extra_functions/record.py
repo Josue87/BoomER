@@ -1,0 +1,20 @@
+import os
+try:
+    import readline
+except:
+    import pyreadline as readline
+import atexit
+
+
+historyPath = os.path.expanduser("~/.jfhistory_root")
+
+
+def save_history(historyPath=historyPath):
+    readline.write_history_file(historyPath)
+
+
+def start_record():
+    if os.path.exists(historyPath):
+        readline.read_history_file(historyPath)
+
+    atexit.register(save_history)

@@ -1,0 +1,3 @@
+load <module> -> Load the module to use
+ Example1: load linux/elevation/screen_exploit
+ Example2: load windows/gathering/auto_elevate_process

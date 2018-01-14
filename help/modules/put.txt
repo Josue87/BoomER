@@ -1,0 +1,4 @@
+put <option> value_option -> Configure module options.
+ You can see module options with 'show options'",
+    Example1: put port 8080
+    Example2: put file bommer/test.txt
