@@ -1,5 +1,6 @@
 import random 
 
+
 def banner():
     r = random.random()
     if r > 0.5:
@@ -7,7 +8,7 @@ def banner():
     else:
         draw3()
     print("""\n Authors: Josue Encinar & Antonio Marcos
-   ↪ Conceived by Pablo Gonzalez \n""")
+   >>> Conceived by Pablo Gonzalez \n""")
 
 def draw1():
     print("""
