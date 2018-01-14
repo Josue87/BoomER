@@ -58,7 +58,7 @@ class BoomerModule(Module):
         key = winreg.OpenKey(h_key, key_path, 0, winreg.KEY_READ)
         i = 0
         name = ""
-        version = "¿?"
+        version = "???"
         while True:
             try:
                 subkey = winreg.EnumValue(key, i)
