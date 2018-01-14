@@ -120,6 +120,7 @@ class Module(metaclass=abc.ABCMeta):
                 + list(self.get_single_operations())
 
     # If a module needs more operations, use the following functions
+    # Remember!! You enter new operations after calling up super in the init function.
     # Operation without arguments
     def register_single_operation(self, op, description=""):
         if op != "" and not self._exists(op.lower()):
