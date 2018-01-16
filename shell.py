@@ -1,9 +1,6 @@
 from os import sep, walk
 from sys import exit
-try:
-    import readline
-except ImportError:
-    import pyreadline as readline
+import readline
 from extra_functions.load import loadModule
 from extra_functions.autocomplete import MyCompleter
 from extra_functions.record import start_record
@@ -91,6 +88,8 @@ class Shell():
             var = var + "/linux"
         elif "mac" in option:
             var = var + "/mac"
+        elif "multi" in option:
+            var = var + "/multi"
         elif "all" in option:
             pass
         elif ("options" in option or "info" in option) and self.myModule:

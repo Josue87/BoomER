@@ -1,8 +1,5 @@
 import os
-try:
-    import readline
-except:
-    import pyreadline as readline
+import readline
 import atexit
 
 

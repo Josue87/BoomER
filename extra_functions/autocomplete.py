@@ -1,7 +1,4 @@
-try:
-    import readline
-except ImportError:
-    import pyreadline as readline
+import readline
 import re
 import os
 
@@ -11,11 +8,11 @@ class MyCompleter():
         self.COMMANDS = []
         self.COMMANDS.extend(commands)
         self.shell = s
-        self.options_show = ["windowsModules", "linuxModules", "macModules", "allModules"]
+        self.options_show = ["multiModules", "windowsModules", "linuxModules", "macModules", "allModules"]
 
     def extend_completer(self, options):
         self.COMMANDS.extend(options)
-        self.options_show = ["windowsModules", "linuxModules", "macModules", "allModules",
+        self.options_show = ["multiModules", "windowsModules", "linuxModules", "macModules", "allModules",
                             "info", "options"]
 
     def remove_options(self, options):
@@ -24,7 +21,7 @@ class MyCompleter():
                 self.COMMANDS.remove(option)
             except:
                 pass
-        self.options_show = ["windowsModules", "linuxModules", "macModules", "allModules"]
+        self.options_show = ["multiModules", "windowsModules", "linuxModules", "macModules", "allModules"]
 
     def _list_directories(self, root, route):
         my_list = []
