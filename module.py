@@ -46,7 +46,7 @@ class Module(metaclass=abc.ABCMeta):
 
     # Function to check if the system is vulnerable
     def check(self):
-        print("This module does not have implemented check functionality")
+        raise Exception("This module does not support check functionality")
 
     def get_options(self):
         return self.options
