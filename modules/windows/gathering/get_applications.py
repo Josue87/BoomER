@@ -23,19 +23,29 @@ class BoomerModule(Module):
             self.print_error(e)
             self.print_info("Only displayed by the console.")
         regkeys = "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall"
+        regkeys_wow = "SOFTWARE\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall"
         hk_option = int(self.options.get("hk")[1])
         if (hk_option != 0) and (hk_option != 1):
             self.print_error("Invalid hk option")
         else:
             self.search_register(hk_option, regkeys)
+            try:
+                self.search_register(hk_option, regkeys_wow)
+            except:
+                pass
         if self.file_open:
             self.file_open.close()
             
     def search_register(self, option_hk, key_path):
         if option_hk == 0:
             h_key = winreg.HKEY_CURRENT_USER
+            data = "HKEY_CURRENT_USER -> "
         else:
             h_key = winreg.HKEY_LOCAL_MACHINE
+            data = "HKEY_LOCAL_MACHINE -> "
+        self.print_info(data + key_path)
+        if self.file_open:
+            self.file_open.write("\n" + data + key_path + "\n\n")
         key = winreg.OpenKey(h_key, key_path, 0, winreg.KEY_READ)
         for subkey in self.get_subkeys(key):
             subkey_path = "%s\\%s" % (key_path, subkey)
@@ -71,7 +81,8 @@ class BoomerModule(Module):
             except WindowsError as e:
                 break
         if name != "":
-            print(name + " -- " + version)
+            data = name + " ---> " + version
+            print(data)
             if self.file_open:
-                self.file_open.write(name + " -- " + version + "\n")
+                self.file_open.write(data + "\n")
         winreg.CloseKey(key)
