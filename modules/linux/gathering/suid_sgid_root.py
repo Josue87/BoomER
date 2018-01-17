@@ -11,15 +11,15 @@ class BoomerModule(Module):
                 "Description": "Module to find files with setuid Root",
         }
         options = {
-            "recursive": ["Check all files from option directory", True],
-            "directory": ["Directory to check", "/"],
-            "file": ["File to dump results", "files/output/suid_sgid_root.txt"]
+            "recursive": ["Check all files from option path", True, False],
+            "path": ["Path to check", "/", False],
+            "file": ["File to dump results", "files/output/suid_sgid_root.txt", True]
         }
         super(BoomerModule, self).__init__(options,info)
         
     def run(self):
         file_w = open(self.options["file"][1], "w")
-        my_dir = self.options["directory"][1]
+        my_dir = self.options["path"][1] or "/"
         if not my_dir.endswith("/"):
             my_dir = my_dir + "/"
         results = self.recursive(my_dir) if self.options["recursive"][1]\

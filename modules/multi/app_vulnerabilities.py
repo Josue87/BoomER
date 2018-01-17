@@ -11,21 +11,21 @@ class BoomerModule(Module):
                 "Description": "Find vulnerabilities in a SW" 
         }
         options = {
-            "software": ["Software to check (Don't use spaces)", "windows"],
-            "version": ["Software version", "10"],
-            "vendor": ["Software owner (Don't use spaces)", "microsoft"],
-            "directory": ["Directory to dump results", "files/output"],
-            "limit_result": ["Limit the number of results obtained (MAX: 100)", 25]
+            "software": ["Software to check (Don't use spaces)", "windows", True],
+            "version": ["Software version", "10", False],
+            "vendor": ["Software owner (Don't use spaces)", "microsoft", True],
+            "directory": ["Directory to dump results", "files/output", False],
+            "limit_result": ["Limit the number of results obtained (MAX: 100)", 25, False]
         }
         super(BoomerModule, self).__init__(options,info)
     
     def run(self):
-        self.write_file = True
-        directory = self.options.get("directory")[1]
-        if not isdir(directory):
-            self.print_error("Wrong directory...")
+        self.write_file = False
+        directory = self.options.get("directory")[1] or ""
+        if directory and isdir(directory):
+            self.write_file = True
+        else:
             self.print_info("No file output")
-            self.write_file = False
 
         sw = self.options.get("software")[1]
         vendor = self.options.get("vendor")[1]

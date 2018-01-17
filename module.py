@@ -1,12 +1,24 @@
-import abc
 import extra_functions.color as color
 
 
-class Module(metaclass=abc.ABCMeta):
+class Module():
 
     def __init__(self, opt, info = {}):
+        """
+        Example to create options and info in a custom module
+        info = {
+                "Name": "Module X",
+                "Author": "Mr. X",
+                "Description": "Exploit X" 
+        }
+        options = {
+            "option1" : ["this option is ...", default_value, is_required?],
+            "option2": ["...", "...", True]
+        }
+        """
         self.options = opt
         self.info = info
+        self._init_check_module()
         # This is for options that permit use the module (after call super init)
         self.module_parameter_operations = {}
         self.module_multiple_parameter_operations = {
@@ -28,19 +40,26 @@ class Module(metaclass=abc.ABCMeta):
 
     def print_error(self, msg):
         print(color.RED + "[-] " +  color.RESET + str(msg))
+    
+    def _init_check_module(self):
+        for k, v in self.options.items():
+            if len(v) == 3:
+                continue
+            elif len(v) == 2:
+                 self.options.get(k).append(True)
+            else:
+                raise Exception("Some option is wrong. Review the module\
+                    \n Example: 'option': ['description', value, required?]")
         
     def check_module(self):
         try:
-            for v in self.options.values():
-                if v[1]:
-                    continue
-                else:
-                    raise Exception("Some option is wrong. Use show options")
+            for k,v in self.options.items():
+                if not v[1] and v[2]:
+                    raise Exception("%s is wrong. Use show options"%(k))
         except:
             raise Exception("Some option is wrong. Use show options")      
 
     # This function is called from shell - Run module
-    @abc.abstractmethod
     def run(self):
         raise Exception("Module doesn't implement run function...") 
 
@@ -74,15 +93,17 @@ class Module(metaclass=abc.ABCMeta):
         if not len(self.options):
             print("Thre aren't options")
         for key, value in self.options.items():
-            print(key)
+            print(key + " (Required: %s)"%(value[2]))
             print("-"*len(key))
             print(" Description: ")
             print("  |--> " + value[0])
             print(" Value: ")
-            i = 1
-            while i < len(value):
-                print("  |--> " + str(value[i]))
-                i += 1
+            aux_value = value[1]
+            if type(aux_value) == type([]):
+                for v in aux_value:
+                    print("  |-->", v)
+            else:
+                print("  |--> ", aux_value)
         print("__________________________________________________________________\n")
         
     def print_module_info(self):

@@ -12,9 +12,9 @@ class BoomerModule(Module):
                 "Description": "Look for .exe with autoElevate true" 
         }
         options = {
-            "recursive": ["Check all files from option directory", False],
-            "directory": ["Directory to check", "C:\Windows\System32\\"],
-            "file": ["File to dump results", "files/output/autoelevate.txt"]
+            "recursive": ["Check all files from option directory", False, False],
+            "directory": ["Directory to check", "C:\Windows\System32\\", True],
+            "file": ["File to dump results", "files/output/autoelevate.txt", True]
         }
         super(BoomerModule, self).__init__(options,info)
     

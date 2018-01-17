@@ -10,18 +10,20 @@ class BoomerModule(Module):
                 "Description": "Find applications installed on Windows" 
         }
         options = {
-            "hk" : ["Select Key:\n   0 -> Current User\n   1 -> Local Machine", 1],
-            "file": ["File to dump results", "files/output/win_app_finder.txt"]
+            "hk" : ["Select Key:\n   0 -> Current User\n   1 -> Local Machine", 1, True],
+            "file": ["File to dump results", "files/output/win_app_finder.txt", False]
         }
         super(BoomerModule, self).__init__(options,info)
     
     def run(self):
         self.file_open = None
-        try:
-            self.file_open = open(self.options.get("file")[1], "w")
-        except Exception as e:
-            self.print_error(e)
-            self.print_info("Only displayed by the console.")
+        f = self.options.get("file")[1]
+        if f:
+            try:
+                self.file_open = open(self.options.get("file")[1], "w")
+            except Exception as e:
+                self.print_error(e)
+                self.print_info("Only displayed by the console.")
         regkeys = "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall"
         regkeys_wow = "SOFTWARE\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall"
         hk_option = int(self.options.get("hk")[1])

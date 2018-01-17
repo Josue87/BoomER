@@ -18,8 +18,8 @@ class BoomerModule(Module):
                 "Description": "Inject a DLL into a process. CreateRemoteThread Method" 
         }
         options = {
-            "pid" : ["Target PID to inject dll", None],
-            "dll": ["DLL to inject", None]
+            "pid" : ["Target PID to inject dll", None, True],
+            "dll": ["DLL to inject", None, True]
         }
         if architecture()[0] == "64bit":
             self.print_info("Process and DLL to injec must be 64 bits")
