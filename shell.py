@@ -137,10 +137,7 @@ class Shell():
             try:
                 self.exec_command(op)
             except Exception as e:
-                if "positional argument" in str(e):
-                    custom_print.error("This option needs arguments")
-                else:
-                    custom_print.error(e)
+                custom_print.error(e)
 
     def exec_command(self, op):
         if op[0] == "search":
@@ -160,6 +157,9 @@ class Shell():
                 raise Exception("Command " + op[0] + " not found. Try to load a module")
             else:
                 if op[0] in self.myModule.get_single_operations():
+                    # before run --> check if all options have a correct value
+                    if op[0] == "run":
+                        self.myModule.check_module()
                     getattr(self.myModule, op[0])()
                 elif op[0] in self.myModule.get_parameter_operations():
                     if len(op) >= 2:

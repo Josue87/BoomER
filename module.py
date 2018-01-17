@@ -28,11 +28,21 @@ class Module(metaclass=abc.ABCMeta):
 
     def print_error(self, msg):
         print(color.RED + "[-] " +  color.RESET + str(msg))
+        
+    def check_module(self):
+        try:
+            for v in self.options.values():
+                if v[1]:
+                    continue
+                else:
+                    raise Exception("Some option is wrong. Use show options")
+        except:
+            raise Exception("Some option is wrong. Use show options")      
 
     # This function is called from shell - Run module
     @abc.abstractmethod
     def run(self):
-        pass
+        raise Exception("Module doesn't implement run function...") 
 
     # Function to check if the system is vulnerable
     def check(self):
