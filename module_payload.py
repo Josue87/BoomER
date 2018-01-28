@@ -11,8 +11,7 @@ class PayloadModule(Module):
             self.options["payload"][1] = args[1]
             self.payload = loadModule(args[1], "support/payloads")
             if self.payload:
-                self.print_info("Execute in Metasploit: use exploit/multi/handler")
-                self.print_info("set payload " + self.payload.get_metasploit())
+                self.print_info(self.payload.get_info_metasploit())
                 self.options["lhost"] = ["Host to connect the shell", "", True]
                 self.options["lport"] = ["Port to connect the shell", "", True]
             else:
