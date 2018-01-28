@@ -3,13 +3,15 @@ from os import path, sep
 from importlib import import_module
 
 
-def loadModule(module):
+def loadModule(module, directory="modules"):
     try:
         new_module = module.split("/")
-        path_aux = path.join( "modules", sep.join(new_module))
+        path_aux = path.join(directory, sep.join(new_module))
         path_aux = path_aux.replace(sep,".")
         moduleAux = import_module(path_aux)
-        return moduleAux.BoomerModule()
+        if directory == "modules":
+            return moduleAux.BoomerModule()
+        return moduleAux.Shellcode()
     except Exception as e:
         print(e)
         return None

@@ -66,6 +66,8 @@ class MyCompleter():
     def complete_put(self, args):
         current_module = self.shell.get_module()
         if current_module is not None:
+            if len(args) > 1 and args[0] == "payload":
+                return self.complete_put_payload(args)
             options = list(current_module.get_options().keys())
             my_list = [
                         option + ' ' for option in options 
@@ -74,7 +76,21 @@ class MyCompleter():
                       ]
             return my_list
         return ""
-
+        
+    #TODO
+    def complete_put_payload(self, args):
+        payloads = []
+        rest = os.sep + os.sep.join(args[1:])
+    
+        for b, d, fs in os.walk("support"+os.sep+"payloads"):
+            for f in fs:
+                option = b+os.sep+f
+                option = os.sep.join(option.split(os.sep)[1:])
+                if (not ".pyc" in option) and \
+                    (option.startswith("payloads"+rest)):
+                    payloads.append(option.replace("payloads"+os.sep,"").replace(".py",""))
+        return payloads
+        
     def complete_help(self, args):
         aux = list(self.shell._options_start.keys())
         module = self.shell.get_module()
