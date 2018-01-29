@@ -17,11 +17,12 @@ class Payload():
         return "Compatible with Metasploit: " + self.info_metasploit
         
     def get_shellcode(self, host, port):
-        self.shellcode = self.shellcode %(get_address(host,port))
-        if self.encode:
-            enc = Encoder(self.shellcode,self.arq, self.size)
-            self.shellcode = enc.execute()
-        return self.shellcode
+        sh_aux = self.shellcode %(get_address(host,port))
+        #TODO
+        #if self.encode:
+         #   enc = Encoder(sh_aux,self.arq, self.size)
+          #  sh_aux = enc.execute()
+        return sh_aux
     
     def get_size(self):
         return self.size

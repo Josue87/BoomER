@@ -1,3 +1,4 @@
+#TODO
 class Encoder():
     
     def __init__(self, sh, arq, size):
