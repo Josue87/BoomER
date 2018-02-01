@@ -33,13 +33,13 @@ class Module():
     
     #The following 3 options are to print messages
     def print_info(self, msg):
-        print(color.BLUE + "[*] " + color.RESET + str(msg))
+        print(color.BLUE + "[I] " + color.RESET + str(msg))
 
     def print_ok(self, msg):
-        print(color.GREEN + "[+] " +  color.RESET + str(msg))
+        print(color.GREEN + "[OK] " +  color.RESET + str(msg))
 
     def print_error(self, msg):
-        print(color.RED + "[-] " +  color.RESET + str(msg))
+        print(color.RED + "[KO] " +  color.RESET + str(msg))
     
     def _init_check_module(self):
         for k, v in self.options.items():

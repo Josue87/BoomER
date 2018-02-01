@@ -4,7 +4,7 @@ import sys
 
 class Encoder():
 
-    def __init__(self, sh, arq, size):
+    def __init__(self, sh, arq, bc):
         self.decoder64 = b"\x48\x31\xC9\x48\x81\xE9%s\x48\x8D\x05\xEF\xFF\xFF\xFF"
         self.decoder64 += b"\x48\xBBXXXXXXXX\x48\x31\x58\x27\x48\x2D\xF8\xFF\xFF\xFF\xE2\xF4"
         # key in position [16]
@@ -14,7 +14,7 @@ class Encoder():
         aux = struct.pack('<l', int(block))
         self.decoder64 = self.decoder64 % aux
         self.key = 0
-        self.size = int(size)
+        self.badchars = bc.split(",")
         self.arq = arq
 
     def _convert(self):
@@ -25,12 +25,12 @@ class Encoder():
             self.key += 1
             for s in self.shellcode:
                 value = str(hex(s ^ self.key))
-                if value == "0x0":
+                if len(value) == 3:
+                    value = value[0:2] + "0" + value[2:]
+                if "\\" + value[1:] in self.badchars:
                     shellcode2 = []
                     exit = False
                     break
-                if len(value) == 3:
-                    value = value[0:2] + "0" + value[2:]
                 shellcode2.append(value)
         return shellcode2
 
