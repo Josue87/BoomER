@@ -1,3 +1,4 @@
+import os
 from os import sep, walk
 from sys import exit
 import readline
@@ -16,7 +17,8 @@ class Shell():
             "load": "load <module> -> Load the module to use",
             "show":"show <modules_option> -> List modules availables",
             "search": "search <word> -> Search a word within info module",
-            "help": "help -> Show this help", 
+            "help": "help -> Show this help",
+            "clear": "clear -> Clear console log",
             "exit": "exit -> Exit BoomER"
         }
         start_record()  # To save records
@@ -147,6 +149,8 @@ class Shell():
                 Search().search(op[1:])
         elif op[0] == "back":
             self.back()
+        elif op[0] == "clear":
+            self.clear()
         elif op[0] in self._options_start.keys():
             if len(op) == 1:
                 getattr(self, op[0])()
@@ -187,3 +191,6 @@ class Shell():
         while "" in mylist:
             mylist.remove("")
         return mylist
+
+    def clear(self):
+        os.system('cls' if os.name == 'nt' else 'clear')
