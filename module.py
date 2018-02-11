@@ -91,7 +91,7 @@ class Module():
         print(color.YELLOW + "\n.. OPTIONS .." + color.RESET)
         print("__________________________________________________________________\n")
         if not len(self.options):
-            print("Thre aren't options")
+            print("The aren't options")
         for key, value in self.options.items():
             print(key + " (Required: %s)"%(value[2]))
             print("-"*len(key))

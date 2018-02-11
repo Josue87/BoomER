@@ -1,4 +1,5 @@
-import random 
+import random
+import extra_functions.color as color
 
 
 def banner():
@@ -12,29 +13,30 @@ def banner():
 
 def draw1():
     print("""
-         %%%%                %%%%
-         %%%%%              %%%%%
-         %%%%%%%          %%%%%%%
-        %%%%%%%%%%%    %%%%%%%%%%%
-         %%    %%%%%%%%%%%%    %%
-                __BoomER_
-                %%%%%%%%%
-               %%%%   %%%%%
-           %%%%%%%      %%%%%%%
-         %%%%%%%          %%%%%%%
-        %%%%%%%            %%%%%%%
-         %%%%%%            %%%%
-            %%              %%
-
-    """)
+          xx                  xx
+         xxxx                xxxx
+         xxxxx              xxxxx
+         xxxxxxx         xxxxxxx
+        xxxxxxxxxxx    xxxxxxxxxxx
+         xx    xxxxxxxxxxxx    xx
+                %s
+                xxxxxxxxx
+               xxxx   xxxxx
+           xxxxxxx      xxxxxxx
+         xxxxxxx          xxxxxxx
+        xxxxxxx            xxxxxxx
+         xxxxxx            xxxxxx
+           xx                xx
+    """ %(color.RED + "__BoomER_" + color.RESET))
 
 def draw3():
     print("""
         
          ▌▌  ▄▌▐▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▌
-      ▄▄██▌█   --- L0c4l Expl0iting ---                   
-   ▄▄▄▌|·█▌█          _BoomER_              
+      ▄▄██▌█   --- %s ---                   
+   ▄▄▄▌|·█▌█ 
+   ████ ██▌▌          _%s_              
    ███████▌█▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▌  ~~~
    ▀(·)▀▀▀▀▀▀▀(·)(·)▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀(·)▀▀▀ ~~~
 --------------------------------------------------
-    """)
+    """%(color.YELLOW + "L0c4l Expl0iting" + color.RESET, color.RED + "BoomER" + color.RESET ))

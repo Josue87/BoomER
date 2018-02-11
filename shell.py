@@ -1,5 +1,4 @@
 from os import sep, walk
-from sys import exit
 import readline
 from extra_functions.load import loadModule
 from extra_functions.autocomplete import MyCompleter
@@ -7,6 +6,7 @@ from extra_functions.record import start_record
 from extra_functions.banner import banner
 import extra_functions.custom_print as custom_print
 from extra_functions.search import Search
+import extra_functions.color as color
 
 
 class Shell():
@@ -25,7 +25,7 @@ class Shell():
         if module is None:
             return "BoomER >> "
         else:
-            return "BoomER (" + chr(27) + "[0;31m" + str(module) + chr(27) + "[0m) >> "
+            return "BoomER" + color.RED + " |_" + color.YELLOW + str(module) + color.RED + "_|" + color.RESET + " >> "
 
     #This function is called with help command (argument are optional)
     def help(self, arg=""):
