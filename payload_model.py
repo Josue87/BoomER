@@ -26,7 +26,9 @@ class Payload():
             return "This payload is not compatible with Metasploit"
         return "Compatible with Metasploit: " + self.info_metasploit
         
-    def get_shellcode(self, port, host):
+    def get_shellcode(self):
+        port =self.options["lport"][1]
+        host = self.options["lhost"][1]
         if self.options["encode"][1]:
             sh_aux = self.shellcode % (pack(">h",int(port)), inet_aton(host))
             enc = Encoder(sh_aux,self.arq, self.options["badchars"][1])
@@ -42,7 +44,7 @@ class Payload():
             custom_print.error("Wrong option: " + key)
     
     def get_size(self):
-        return self.sizeodule
+        return self.size
     
     def metasploit_compatible(self):
         return self.use_metaploit

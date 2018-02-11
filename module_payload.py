@@ -35,5 +35,6 @@ class PayloadModule(Module):
 
     def get_options(self):
         aux = self.options
-        aux.update(self.payload.get_options())
+        if self.payload:
+            aux.update(self.payload.get_options())
         return aux
