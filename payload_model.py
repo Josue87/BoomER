@@ -14,17 +14,18 @@ class Payload():
         self.use_metaploit = use_metaploit
         self.info_metasploit = info_metasploit
         self.arq = str(arq)
+        self.single = single
         if not single:
             self.options = {
                 "encode": ["Host to connect the shell", False, False],
                 "lhost": ["Host to connect the shell", "", True],
                 "lport": ["Port to connect the shell", "", True],
-                "badchars": ["Port to connect the shell (example \\x00,\\xab)", "\\x00", True]
+                "badchars": ["Bad characters (example \\x00,\\xab)", "\\x00", True]
             }
         else:
             self.options = {
                 "encode": ["Host to connect the shell", False, False],
-                "badchars": ["Port to connect the shell (example \\x00,\\xab)", "\\x00", True]
+                "badchars": ["Bad characters (example \\x00,\\xab)", "\\x00", True]
             }
     
     def get_info_metasploit(self):
@@ -33,22 +34,34 @@ class Payload():
         return "Compatible with Metasploit: " + self.info_metasploit
         
     def get_shellcode(self):
-        port =self.options["lport"][1]
-        host = self.options["lhost"][1]
-        if self.options["encode"][1]:
-            if self.arq == "x64":
-                sh_aux = self.shellcode % (pack(">h",int(port)), inet_aton(host))
-                enc = Encoder64(sh_aux, self.options["badchars"][1])
+        if not self.single:
+            port =self.options["lport"][1]
+            host = self.options["lhost"][1]
+            if self.options["encode"][1]:
+                if self.arq == "x64":
+                    sh_aux = self.shellcode % (pack(">h",int(port)), inet_aton(host))
+                    enc = Encoder64(sh_aux, self.options["badchars"][1])
+                    sh_aux = enc.execute()
+                else:
+                    #TODO
+                    sh_aux = self.shellcode % (inet_aton(host), pack(">h",int(port)))
             else:
-                sh_aux = self.shellcode % (inet_aton(host), pack(">h",int(port)))
-                print("Encode to x86 TO-DO")
-            sh_aux = enc.execute()
+                p, h = get_address(port, host)
+                if self.arq == "x64":
+                    sh_aux = self.shellcode % (p,h)
+                else:
+                    sh_aux = self.shellcode % (h,p)
         else:
-            p, h = get_address(port, host)
-            if self.arq == "x64":
-                sh_aux = self.shellcode % (p,h)
+            if self.options["encode"][1]:
+                if self.arq == "x64":
+                    enc = Encoder64(self.shellcode, self.options["badchars"][1])
+                    sh_aux = enc.execute()
+                else:
+                    #TODO
+                    sh_aux = self.shellcode
             else:
-                sh_aux = self.shellcode % (h,p)
+                sh_aux = self.shellcode
+            
         return sh_aux
 
     def put(self, key, value):

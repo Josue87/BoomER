@@ -3,16 +3,21 @@ from extra_functions.load import loadModule
 
 
 class PayloadModule(Module):
-    def __init__(self, opt, info={}):
+    def __init__(self, opt, info={}, compatible=[]):
         opt["payload"] = ["""If this option is empty open a local root shell\n
         Use -e to encode the shellcode and avoid NULL characters""", "", False]
         super(PayloadModule, self).__init__(opt, info)
         self.payload = None
+        self.compatible = compatible
+        self.register_single_operation("list_payloads", "Shows supported payloads")
     
     def put(self, args):
         key = args[0]
         value = args[1]
         if key == "payload" and value:
+            if not  value in self.compatible:
+                self.print_info("Payload not accepted by this module")
+                return
             self.payload = loadModule(value, "support/payloads")
             if self.payload:
                 self.options["payload"][1] = value
@@ -38,3 +43,8 @@ class PayloadModule(Module):
         if self.payload:
             aux.update(self.payload.get_options())
         return aux
+    
+    def list_payloads(self):
+        print("-- Supported Payloads --")
+        for payload in self.compatible:
+            print(payload)
