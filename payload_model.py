@@ -7,20 +7,25 @@ import extra_functions.color as color
 import extra_functions.custom_print as custom_print
 
 
-
 class Payload():
-    def __init__(self, shellcode, size, use_metaploit=False, info_metasploit="", arq="x64"):
+    def __init__(self, shellcode, size, use_metaploit=False, info_metasploit="", arq="x64", single=False):
         self.shellcode = shellcode
         self.size = size
         self.use_metaploit = use_metaploit
         self.info_metasploit = info_metasploit
         self.arq = str(arq)
-        self.options = {
-            "encode": ["Host to connect the shell", False, False],
-            "lhost": ["Host to connect the shell", "", True],
-            "lport": ["Port to connect the shell", "", True],
-            "badchars": ["Port to connect the shell (example \\x00,\\xab)", "\\x00", True]
-        }
+        if not single:
+            self.options = {
+                "encode": ["Host to connect the shell", False, False],
+                "lhost": ["Host to connect the shell", "", True],
+                "lport": ["Port to connect the shell", "", True],
+                "badchars": ["Port to connect the shell (example \\x00,\\xab)", "\\x00", True]
+            }
+        else:
+            self.options = {
+                "encode": ["Host to connect the shell", False, False],
+                "badchars": ["Port to connect the shell (example \\x00,\\xab)", "\\x00", True]
+            }
     
     def get_info_metasploit(self):
         if not self.use_metaploit:
