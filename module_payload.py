@@ -21,9 +21,6 @@ class PayloadModule(Module):
             self.payload = loadModule(value, "support/payloads")
             if self.payload:
                 self.options["payload"][1] = value
-                if "-e" in args:
-                    self.print_info("Encode enable")
-                    self.payload.options["encode"][1] = True
                 self.print_info(self.payload.get_info_metasploit())
             else:
                 self.print_error("Wrong payload")

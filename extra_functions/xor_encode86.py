@@ -18,26 +18,20 @@ class Encoder86():
             exit = True
             key += 1
             for s in sc:
-                value =  ord(s) ^ key
+                value =  str(hex(s ^ key))
                 if value == 0:
                     shellcode2 = []
                     exit = False
                     break
+                if len(value) == 3:
+                    value = value[0:2] + "0" + value[2:]
+                value = "\\" + value[1:]
                 shellcode2.append(value)
         return key, shellcode2
 
     def execute(self):
         key, sh = self.get_shellcode(self.shellcode)
-        #Format
-        shellcode2 = []
-        for s in sh:
-            aux = str(hex(s))
-            if len(aux) == 3:
-                aux = aux[0:2] + "0" + aux[2:]
-            aux = "\\" + aux[1:]
-            shellcode2.append(aux)
-
-        shell_c = "".join(shellcode2)
+        shell_c = "".join(sh)
         print(shell_c)
         decoder2 = []
         i = 0
