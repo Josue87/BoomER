@@ -37,6 +37,9 @@ class Module():
 
     def print_ok(self, msg):
         print(color.GREEN + "[OK] " +  color.RESET + str(msg))
+        
+    def print_warn(self, msg):
+        print(color.YELLOW + "[!] " +  color.RESET + str(msg))
 
     def print_error(self, msg):
         print(color.RED + "[KO] " +  color.RESET + str(msg))
