@@ -1,0 +1,10 @@
+__SUID ROOT ACTIVE__
+/bin/ntfs-3g
+/bin/ping
+/bin/su
+/bin/umount
+/bin/mount
+/bin/ping6
+/bin/ping4
+/bin/fusermount
+__SGID ROOT ACTIVE__
