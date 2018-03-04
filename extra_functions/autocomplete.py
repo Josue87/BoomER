@@ -7,12 +7,31 @@ class MyCompleter():
     def __init__(self, commands, s):
         self.COMMANDS = []
         self.COMMANDS.extend(commands)
+        self._c_reset = self.COMMANDS
         self.shell = s
-        self.options_show = ["multiModules", "windowsModules", "linuxModules", "macModules", "allModules"]
+        self.options_show = ["listeners", "multiModules", "windowsModules", "linuxModules", "macModules", "allModules"]
+        self._s_reset = self.options_show
+        self.set_backup()
+    
+    def set_all_commands(self, commands, show):
+        self.COMMANDS = commands
+        self.options_show = show
+    
+    def set_backup(self):
+        self._auxCommands = self.COMMANDS
+        self._auxShow = self.options_show
+    
+    def restore_backup(self):
+        self.COMMANDS = self._auxCommands
+        self.options_show = self._s_reset
+
+    def reset(self):
+        self.COMMANDS = self._c_reset
+        self.options_show = self._auxShow
 
     def extend_completer(self, options):
         self.COMMANDS.extend(options)
-        self.options_show = ["multiModules", "windowsModules", "linuxModules", "macModules", "allModules",
+        self.options_show = ["listeners", "multiModules", "windowsModules", "linuxModules", "macModules", "allModules",
                             "info", "options"]
 
     def remove_options(self, options):
@@ -21,7 +40,7 @@ class MyCompleter():
                 self.COMMANDS.remove(option)
             except:
                 pass
-        self.options_show = ["multiModules", "windowsModules", "linuxModules", "macModules", "allModules"]
+        self.options_show = ["listeners", "multiModules", "windowsModules", "linuxModules", "macModules", "allModules"]
 
     def _list_directories(self, root, route):
         my_list = []
@@ -76,6 +95,15 @@ class MyCompleter():
                       ]
             return my_list
         return ""
+    
+    def complete_listener(self, args):
+        if(len(args) > 1):
+            return []
+        path = os.path.join(".", "listener")
+        if not args:
+            return self._complete_path(route=path)
+        
+        return self._complete_path(args[-1], path)
         
     #TODO
     def complete_put_payload(self, args):

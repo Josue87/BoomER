@@ -1,6 +1,7 @@
 import os
 from os import sep, walk
 import readline
+from sys import exit
 from extra_functions.load import loadModule
 from extra_functions.autocomplete import MyCompleter
 from extra_functions.record import start_record
@@ -73,9 +74,10 @@ class Shell():
             custom_print.error("Error loading module")
             return None
         custom_print.ok(str(module) + " loaded correctly")
-        self.nameModule = module
-
+        self.nameModule = module 
         self.myModule = module_load
+        if hasattr(self.myModule,"set_completer"):
+            self.myModule.set_completer(self.completer)
         try:
             self.completer.extend_completer(self.myModule.get_all_operations())
         except Exception as e:
@@ -85,15 +87,17 @@ class Shell():
     def show(self, option):
         var = "modules"
         if "windows" in option:
-            var = var + "/windows"
+            var = var + sep + "windows"
         elif "linux" in option:
-            var = var + "/linux"
+            var = var + sep + "linux"
         elif "mac" in option:
-            var = var + "/mac"
+            var = var + sep + "mac"
         elif "multi" in option:
-            var = var + "/multi"
+            var = var + sep + "multi"
         elif "all" in option:
             pass
+        elif "listeners" in option:
+            var = var + sep + "listener"
         elif ("options" in option or "info" in option) and self.myModule:
             self.myModule.show(option)
             return
@@ -106,7 +110,7 @@ class Shell():
                 if ".py" == file[-3:] and file != "model.py" and file[0] != "_":
                     path = root.split(sep)[1:]
                     print(sep.join(path) + sep + file.split(".py")[0])  
-
+    
     #Use to init completer 
     def initial(self):
         self.completer = MyCompleter(self._options_start.keys(), self)
@@ -120,8 +124,11 @@ class Shell():
 
     def start(self):
         self.initial()
-        operation = ""
         banner()
+        self.treat_input()
+    
+    def treat_input(self):
+        operation = ""
         while True:
             if (self.myModule is None):
                 operation = input(self.prompt())
@@ -135,7 +142,8 @@ class Shell():
                 continue
             op[0] = op[0].lower()
             if(op[0] == "exit"):
-                break
+                print("Closing BoomER")
+                exit(0)
             try:
                 self.exec_command(op)
             except Exception as e:
@@ -180,7 +188,7 @@ class Shell():
 
     #Remove current module
     def back(self):
-        self.completer.remove_options(self.myModule.get_all_operations())
+        self.completer.reset()
         self.myModule = None
 
     @staticmethod
