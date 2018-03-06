@@ -9,6 +9,7 @@ from extra_functions.banner import banner
 import extra_functions.custom_print as custom_print
 from extra_functions.search import Search
 import extra_functions.color as color
+from extra_functions.session import Session
 
 
 class Shell():
@@ -20,9 +21,21 @@ class Shell():
             "search": "search <word> -> Search a word within info module",
             "help": "help -> Show this help",
             "clear": "clear -> Clear console log",
+            "sessions": "Show open sessions",
+            "interact": "interact <session id> --> Interact with ID session",
             "exit": "exit -> Exit BoomER"
         }
         start_record()  # To save records
+
+    #Use to init completer 
+    def initial(self):
+        self.completer = MyCompleter(self._options_start.keys(), self)
+        readline.set_history_length(50)  # max 50
+        readline.set_completer_delims(' \t\n;')  # override the delims (we want /)
+        readline.parse_and_bind("tab: complete")
+        readline.set_completer(self.completer.complete)
+        self.open_sessions = Session.getInstance()
+        self.open_sessions.set_autocomplete(self.completer)
 
     def prompt(self, module=None):
         if module is None:
@@ -76,8 +89,6 @@ class Shell():
         custom_print.ok(str(module) + " loaded correctly")
         self.nameModule = module 
         self.myModule = module_load
-        if hasattr(self.myModule,"set_completer"):
-            self.myModule.set_completer(self.completer)
         try:
             self.completer.extend_completer(self.myModule.get_all_operations())
         except Exception as e:
@@ -111,13 +122,20 @@ class Shell():
                     path = root.split(sep)[1:]
                     print(sep.join(path) + sep + file.split(".py")[0])  
     
-    #Use to init completer 
-    def initial(self):
-        self.completer = MyCompleter(self._options_start.keys(), self)
-        readline.set_history_length(50)  # max 50
-        readline.set_completer_delims(' \t\n;')  # override the delims (we want /)
-        readline.parse_and_bind("tab: complete")
-        readline.set_completer(self.completer.complete)
+    def sessions(self):
+        op_se = self.open_sessions.get_sessions()
+        if len(op_se) == 0:
+            print("No session (s) open")
+            return
+        for sid, session in op_se.items():
+            addr = session.getpeername()
+            print(str(sid) + " -> " + addr[0] + ":" + str(addr[1]))
+    
+    def interact(self, id=None):
+        if not id:
+            custom_print.error("It's necessary an ID")
+            return
+        self.open_sessions.interact(id)
 
     def get_module(self):
         return self.myModule
