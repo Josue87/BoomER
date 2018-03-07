@@ -56,8 +56,3 @@ class BoomerModule(Module):
             pass
         finally:
             sock.close()
-        
-    def help(self):
-        for k,v in self.meterpreter_functions.items():
-            self.print_info(k + ": " + v["help"])
-            print("   |_ Execute: " + v["execute"])

