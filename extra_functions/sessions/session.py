@@ -1,6 +1,7 @@
 import extra_functions.color as color
 import extra_functions.custom_print as custom_print
 import os
+from extra_functions.sessions.linux.linux_session import Linux
 
 
 class Session:
@@ -21,36 +22,11 @@ class Session:
             self.current_id = 1
             self.current_session = None
             self.completer = None
-            self.meterpreter_functions = {
-            "help": {
-                "function":"help",
-                "help":"Show this help.",
-                "execute": "help",
-                "exec": False},
-            "background": {
-                "function":"background",
-                "help":"Send Session to background",
-                "execute": "background",
-                "exec": False},
-            "exit": {
-                "function":"exit",
-                "help":"Close BoomERpreter",
-                "execute": "exit",
-                "exec": True},
-            "suid_sgid": {
-                "function": "check_result",
-                "help": "Find root SUID_SGID files",
-                "execute":"suid_sgid <path>", 
-                "exec": True},
-            "shell": {
-                "function": "shell",
-                "help": "Spawn a Shell",
-                "execute":"shell", 
-                "exec": True}
-        }
+            self.module_session = None
+           
     
-    def set_session(self,session):
-        self.sessions[self.current_id] = session
+    def set_session(self,session, platform):
+        self.sessions[self.current_id] = [session, platform]
         self.current_id += 1
         return self.current_id - 1
     
@@ -63,13 +39,20 @@ class Session:
     def interact(self, session_id):
         try:
             session_id = int(session_id)
-            client = self.sessions[session_id]
+            client = self.sessions[session_id][0]
             self.current_session = client
+            pl = (self.sessions[session_id][1]).lower()
+            if "linux" in pl:
+                self.module_session = Linux(self.current_session)
+                custom_print.info("Interacting with: " + pl)
+            else:
+                custom_print.info("Right now only Linux is accepted")
+                return
         except:
             print("Session no found")
             return
         self.completer.set_backup()
-        self.completer.set_all_commands(list(self.meterpreter_functions.keys()),[])
+        self.completer.set_all_commands(list(self.module_session.get_functions().keys()),[])
         while True:
             try:
                 data_input = input(color.YELLOW + "BoomERpreter >> " + color.RESET)
@@ -84,11 +67,11 @@ class Session:
                     self.completer.restore_backup()
                     return 1
                 split_data = data_input.split()
-                opt = self.meterpreter_functions[split_data[0]]
+                opt = self.module_session.get_functions()[split_data[0]]
                 if not opt:
                     continue
                 if not opt["exec"]:
-                    getattr(self, opt["function"])()
+                    getattr(self.module_session, opt["function"])()
                     continue
                 client.send(data_input.encode())
                 data = client.recv(4096)
@@ -96,7 +79,7 @@ class Session:
                     if "Error" in data.decode():
                         custom_print.error("Wrong input: " + data_input)
                     else:
-                        getattr(self, opt["function"])(data.decode())
+                        getattr(self.module_session, opt["function"])(data.decode())
             except Exception as e:
                 print(str(e))
                 if "Broken pipe" in str(e):
@@ -104,26 +87,6 @@ class Session:
                     self._delete_session(session_id)
                     return 0
 
-    def check_result(self, result):
-        print(result)
-    
-    def help(self):
-        for k,v in self.meterpreter_functions.items():
-            self.print_info(k + ": " + v["help"])
-            print("   |_ Execute: " + v["execute"])
-    
-    def shell(self, result):
-        if "No" == result:
-            custom_print.info("No shell obtained")
-            return
-        print(result.strip(), end=" ")
-        while True:
-            data_input = input()
-            self.current_session.send((data_input+"\n").encode())
-            if "exit" in data_input:
-                return
-            recv = self.current_session.recv(1024)
-            print(recv.decode().strip(), end=" ")
     
     def _delete_session(self, id):
         try:

