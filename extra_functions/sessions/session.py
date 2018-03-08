@@ -1,6 +1,7 @@
 import extra_functions.color as color
 import extra_functions.custom_print as custom_print
 import os
+import json
 from extra_functions.sessions.linux.linux_session import Linux
 
 
@@ -24,7 +25,6 @@ class Session:
             self.completer = None
             self.module_session = None
            
-    
     def set_session(self,session, platform):
         self.sessions[self.current_id] = [session, platform]
         self.current_id += 1
@@ -73,13 +73,19 @@ class Session:
                 if not opt["exec"]:
                     getattr(self.module_session, opt["function"])()
                     continue
-                client.send(data_input.encode())
-                data = client.recv(4096)
+                self.send_msg(client, split_data)
+                if "shell" == data_input.strip():
+                    data = client.recv(4096)
+                    data = data.decode()
+                else:
+                    data = self.recv_msg(client)
                 if data:
-                    if "Error" in data.decode():
-                        custom_print.error("Wrong input: " + data_input)
+
+                    data
+                    if "Error" in data:
+                        custom_print.error(data)
                     else:
-                        getattr(self.module_session, opt["function"])(data.decode())
+                        getattr(self.module_session, opt["function"])(data)
             except Exception as e:
                 print(str(e))
                 if "Broken pipe" in str(e):
@@ -93,3 +99,16 @@ class Session:
             del self.sessions[id]
         except:
             custom_print.error("Error deleting session " + str(id))
+    
+    def send_msg(self, client, msg):
+        data = {
+            "function": msg[0],
+            "args": []
+        }
+        if len(msg) > 1:
+            data["args"] = msg[1:]
+        client.send((json.dumps(data)).encode())
+    
+    def recv_msg(self, client):
+        data = client.recv(4096)
+        return json.loads(data.decode())

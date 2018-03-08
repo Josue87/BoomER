@@ -8,6 +8,7 @@ import sys
 import time
 import threading
 import platform
+import json
 
 try:
     import pty
@@ -37,20 +38,21 @@ class Boomerpreter:
     def run(self):
         self.socket.send(self.platform_os.encode())
         while True:
-            data_rcv = self.socket.recv(1024)
-            data_rcv = data_rcv.split()
+            data_rcv = self.recv_data()
+            func = data_rcv["function"]
+            args = data_rcv["args"]
             try:
-                opt = self.options[data_rcv[0]]
+                opt = self.options[func]
                 if opt:
                     if opt[1]:
-                        if len(data_rcv) > 1:
-                            data = getattr(self, opt[0])(data_rcv[1])
+                        if len(args) > 0:
+                            data = getattr(self, opt[0])(args)
                         else:
-                            data = b"Error"
+                            data = b"Error: The function needs args"
                     else:
                         data = getattr(self, opt[0])()
             except Exception as e:
-                data = b"Error"
+                data = b"Error: " + str(e)
             if not data:
                 continue
             if "exit" == data:
@@ -60,16 +62,17 @@ class Boomerpreter:
     def recv_data(self):
         data = self.socket.recv(1024)
         if self.py_version == 3:
-            data = data.encode()
-        return data
+            data = data.decode()
+        return json.loads(data)
     
     def send_data(self, data):
+        data = json.dumps(data)
         if self.py_version == 3:
             data = data.encode()
         self.socket.send(data)
 
     def get_suid_sgid(self, request):
-        my_dir = request
+        my_dir = request[0]
         files_suid = []
         files_sgid = []
         for f in os.listdir(my_dir):
