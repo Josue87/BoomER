@@ -43,7 +43,7 @@ class Session:
             self.current_session = client
             pl = (self.sessions[session_id][1]).lower()
             if "linux" in pl:
-                self.module_session = Linux(self.current_session)
+                self.module_session = Linux(self, self.current_session)
                 custom_print.info("Interacting with: " + pl)
             else:
                 custom_print.info("Right now only Linux is accepted")
@@ -56,6 +56,7 @@ class Session:
         while True:
             try:
                 data_input = input(color.YELLOW + "BoomERpreter >> " + color.RESET)
+                data_input = data_input.strip()
                 if data_input == "":
                     continue
                 if "exit" in data_input:
@@ -80,23 +81,22 @@ class Session:
                 else:
                     data = self.recv_msg(client)
                 if data:
-
-                    data
                     if "Error" in data:
                         custom_print.error(data)
                     else:
                         getattr(self.module_session, opt["function"])(data)
             except Exception as e:
-                print(str(e))
+                custom_print.error(str(e))
                 if "Broken pipe" in str(e):
                     custom_print.info("Meterpreter closed")
                     self._delete_session(session_id)
                     return 0
-
     
     def _delete_session(self, id):
         try:
             del self.sessions[id]
+            self.current_session.close()
+            custom_print.info("Session %s has been closed" % str(id))
         except:
             custom_print.error("Error deleting session " + str(id))
     

@@ -44,7 +44,7 @@ class BoomerModule(Module):
                 c = client.send(meterpreter)
                 if c == 0:
                     return
-                print("Send %s bytes" % str(c))
+                print("%s bytes have been sent" % str(c))
                 platform = client.recv(1024)
                 session_id = self.sessions.set_session(client, platform.decode())
                 self.print_info("Session %s has been created" % str(session_id))
