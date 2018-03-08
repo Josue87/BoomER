@@ -129,7 +129,7 @@ class Boomerpreter:
                     recv = self.socket.recv(1024)
                     if len(recv) == 0:
                         break
-                    if "exit" in recv:
+                    if b"exit" in recv:
                         return None
                     channel.write(recv)
                 read = False
