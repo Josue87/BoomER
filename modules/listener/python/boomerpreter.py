@@ -24,7 +24,8 @@ class BoomerModule(Module):
     def run(self):
         # Create a TCP/IP socket
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        sock.settimeout(14)
+        sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        sock.settimeout(3)
         # Bind the socket to the port
         server_address = (self.options["lhost"][1], int(self.options["lport"][1]))
         print('starting up on %s port %s' % server_address)
@@ -46,6 +47,7 @@ class BoomerModule(Module):
                     return
                 print("%s bytes have been sent" % str(c))
                 platform = client.recv(1024)
+                print(platform)
                 session_id = self.sessions.set_session(client, platform.decode())
                 self.print_info("Session %s has been created" % str(session_id))
                 res = self.sessions.interact(session_id)

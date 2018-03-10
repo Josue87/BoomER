@@ -80,11 +80,17 @@ class Session:
                     data = data.decode()
                 else:
                     data = self.recv_msg(client)
+                if len(data) == 0:
+                    raise Exception("Broken pipe")
                 if data:
                     if "Error" in data:
                         custom_print.error(data)
                     else:
                         getattr(self.module_session, opt["function"])(data)
+            except KeyboardInterrupt:
+                self.completer.restore_backup()
+                self._delete_session(session_id)
+                return 0
             except Exception as e:
                 custom_print.error(str(e))
                 if "Broken pipe" in str(e):
