@@ -13,8 +13,8 @@ class BoomerModule(Module):
         }
         options = {
             "recursive": ["Check all files from option directory", False, False],
-            "directory": ["Directory to check", "C:\Windows\System32\\", True],
-            "file": ["File to dump results", "files/output/autoelevate.txt", True]
+            "directory": ["Directory to check", "C:\\Windows\\System32\\", True],
+            "file": ["File to dump results", "files\\output\\autoelevate.txt", True]
         }
         super(BoomerModule, self).__init__(options,info)
     
@@ -24,7 +24,7 @@ class BoomerModule(Module):
             if b"<autoElevate>true</autoElevate>" in f.read():
                 print(pt)
                 return pt            
-        except Exception as e:
+        except:
             pass
 
     def run(self):
@@ -42,7 +42,7 @@ class BoomerModule(Module):
         if self.options["recursive"][1]:
             self.print_info("Recursive mode")
             for b, d, f in walk(my_path):
-                f_exe = glob(b + sept + "*exe")
+                f_exe = glob(b + sep + "*exe")
                 files_to_check.extend(f_exe)
             pool = Pool(8)
             results = pool.map(self.check_auto_elevate, files_to_check)
