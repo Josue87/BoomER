@@ -1,6 +1,7 @@
 import os
 from os import sep, walk
 import readline
+from sys import exit
 from extra_functions.load import loadModule
 from extra_functions.autocomplete import MyCompleter
 from extra_functions.record import start_record
@@ -8,6 +9,7 @@ from extra_functions.banner import banner
 import extra_functions.custom_print as custom_print
 from extra_functions.search import Search
 import extra_functions.color as color
+from extra_functions.sessions.session import Session
 
 
 class Shell():
@@ -19,9 +21,21 @@ class Shell():
             "search": "search <word> -> Search a word within info module",
             "help": "help -> Show this help",
             "clear": "clear -> Clear console log",
+            "sessions": "Show open sessions",
+            "interact": "interact <session id> --> Interact with ID session",
             "exit": "exit -> Exit BoomER"
         }
         start_record()  # To save records
+
+    #Use to init completer 
+    def initial(self):
+        self.completer = MyCompleter(self._options_start.keys(), self)
+        readline.set_history_length(50)  # max 50
+        readline.set_completer_delims(' \t\n;')  # override the delims (we want /)
+        readline.parse_and_bind("tab: complete")
+        readline.set_completer(self.completer.complete)
+        self.open_sessions = Session.getInstance()
+        self.open_sessions.set_autocomplete(self.completer)
 
     def prompt(self, module=None):
         if module is None:
@@ -73,8 +87,7 @@ class Shell():
             custom_print.error("Error loading module")
             return None
         custom_print.ok(str(module) + " loaded correctly")
-        self.nameModule = module
-
+        self.nameModule = module 
         self.myModule = module_load
         try:
             self.completer.extend_completer(self.myModule.get_all_operations())
@@ -85,15 +98,17 @@ class Shell():
     def show(self, option):
         var = "modules"
         if "windows" in option:
-            var = var + "/windows"
+            var = var + sep + "windows"
         elif "linux" in option:
-            var = var + "/linux"
+            var = var + sep + "linux"
         elif "mac" in option:
-            var = var + "/mac"
+            var = var + sep + "mac"
         elif "multi" in option:
-            var = var + "/multi"
+            var = var + sep + "multi"
         elif "all" in option:
             pass
+        elif "listeners" in option:
+            var = var + sep + "listener"
         elif ("options" in option or "info" in option) and self.myModule:
             self.myModule.show(option)
             return
@@ -106,22 +121,32 @@ class Shell():
                 if ".py" == file[-3:] and file != "model.py" and file[0] != "_":
                     path = root.split(sep)[1:]
                     print(sep.join(path) + sep + file.split(".py")[0])  
-
-    #Use to init completer 
-    def initial(self):
-        self.completer = MyCompleter(self._options_start.keys(), self)
-        readline.set_history_length(50)  # max 50
-        readline.set_completer_delims(' \t\n;')  # override the delims (we want /)
-        readline.parse_and_bind("tab: complete")
-        readline.set_completer(self.completer.complete)
+    
+    def sessions(self):
+        op_se = self.open_sessions.get_sessions()
+        if len(op_se) == 0:
+            print("No session (s) open")
+            return
+        for sid, data in op_se.items():
+            addr = data[0].getpeername()
+            print(str(sid) + " -> " + addr[0] + ":" + str(addr[1]) + " -- " + data[1])
+    
+    def interact(self, id=None):
+        if not id:
+            custom_print.error("It's necessary an ID")
+            return
+        self.open_sessions.interact(id)
 
     def get_module(self):
         return self.myModule
 
     def start(self):
         self.initial()
-        operation = ""
         banner()
+        self.treat_input()
+    
+    def treat_input(self):
+        operation = ""
         while True:
             if (self.myModule is None):
                 operation = input(self.prompt())
@@ -135,7 +160,8 @@ class Shell():
                 continue
             op[0] = op[0].lower()
             if(op[0] == "exit"):
-                break
+                print("Closing BoomER")
+                exit(0)
             try:
                 self.exec_command(op)
             except Exception as e:
@@ -180,7 +206,7 @@ class Shell():
 
     #Remove current module
     def back(self):
-        self.completer.remove_options(self.myModule.get_all_operations())
+        self.completer.reset()
         self.myModule = None
 
     @staticmethod
