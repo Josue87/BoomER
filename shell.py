@@ -1,6 +1,14 @@
 import os
 from os import sep, walk
-import readline
+try:
+    import readline
+    import rlcompleter
+    if 'libedit' in readline.__doc__:
+        readline.parse_and_bind("bind ^I rl_complete")
+    else:
+        readline.parse_and_bind("tab: complete")
+except:
+    pass
 from sys import exit
 from extra_functions.load import loadModule
 from extra_functions.autocomplete import MyCompleter
