@@ -37,13 +37,12 @@ class Shell():
 
     #Use to init completer 
     def initial(self):
-        self.completer = MyCompleter(self._options_start.keys(), self)
+        self.completer = MyCompleter.getInstance(self._options_start.keys(), self)
         readline.set_history_length(50)  # max 50
         readline.set_completer_delims(' \t\n;')  # override the delims (we want /)
         readline.parse_and_bind("tab: complete")
         readline.set_completer(self.completer.complete)
         self.open_sessions = Session.getInstance()
-        self.open_sessions.set_autocomplete(self.completer)
 
     def prompt(self, module=None):
         if module is None:

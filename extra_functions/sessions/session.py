@@ -2,6 +2,7 @@ import extra_functions.color as color
 import extra_functions.custom_print as custom_print
 import os
 import json
+from extra_functions.autocomplete import MyCompleter
 from extra_functions.sessions.linux.linux_session import Linux
 
 
@@ -22,7 +23,7 @@ class Session:
             self.sessions = {}
             self.current_id = 1
             self.current_session = None
-            self.completer = None
+            self.completer = MyCompleter.getInstance()
             self.module_session = None
            
     def set_session(self,session, platform):
@@ -33,9 +34,6 @@ class Session:
     def get_sessions(self):
         return self.sessions
     
-    def set_autocomplete(self, completer):
-        self.completer = completer
-
     def interact(self, session_id):
         try:
             session_id = int(session_id)

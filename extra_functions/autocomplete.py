@@ -4,15 +4,32 @@ import os
 
 
 class MyCompleter():
+
+    __instance = None
+
+    @staticmethod
+    def getInstance(commands=[], s=None):
+        if MyCompleter.__instance == None:
+            MyCompleter(commands, s)
+        return MyCompleter.__instance 
+
     def __init__(self, commands, s):
-        self.COMMANDS = []
-        self.COMMANDS.extend(commands)
-        self._c_reset = self.COMMANDS
-        self.shell = s
-        self.options_show = ["listeners", "multiModules", "windowsModules", "linuxModules", "macModules", "allModules"]
-        self._s_reset = self.options_show
-        self.set_backup()
+        if MyCompleter.__instance != None:
+            raise Exception("This class is a singleton!")
+        else:
+            MyCompleter.__instance = self
+            self.COMMANDS = []
+            self.COMMANDS.extend(commands)
+            self._c_reset = self.COMMANDS
+            self.shell = s
+            self.options_show = ["listeners", "multiModules", "windowsModules", "linuxModules", "macModules", "allModules"]
+            self._s_reset = self.options_show
+            self.set_backup()
+            self.all_payloads = []
     
+    def set_all_payloads(self, p):
+        self.all_payloads = p
+
     def set_all_commands(self, commands, show):
         self.COMMANDS = commands
         self.options_show = show
@@ -108,15 +125,11 @@ class MyCompleter():
     #TODO
     def complete_put_payload(self, args):
         payloads = []
-        rest = os.sep + os.sep.join(args[1:])
-    
-        for b, d, fs in os.walk("support"+os.sep+"payloads"):
-            for f in fs:
-                option = b+os.sep+f
-                option = os.sep.join(option.split(os.sep)[1:])
-                if (not ".pyc" in option) and \
-                    (option.startswith("payloads"+rest)):
-                    payloads.append(option.replace("payloads"+os.sep,"").replace(".py",""))
+        for option in self.all_payloads:
+            rest = "".join(args[1:])
+            if (not ".pyc" in option) and \
+                (option.startswith(rest)):
+                payloads.append(option)
         return payloads
         
     def complete_help(self, args):
