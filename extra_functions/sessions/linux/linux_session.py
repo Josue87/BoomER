@@ -88,7 +88,7 @@ class Linux(ModelSession):
             custom_print.info("No exploit...")
             return
         function = exp["function"]
-        self.root_screen45([function])
+        getattr(self, function)([function])
     
     def shell(self, data):
         self.send_msg(data, False)

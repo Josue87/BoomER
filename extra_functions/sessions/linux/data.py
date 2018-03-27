@@ -1,7 +1,7 @@
 DATA_CHECK = {
         'screen' : {
           'command' : 'screen --version',
-          'versions' : [{"4.05" : 'Privilege Escalation -> To get a RootShell try to run: root_screen45'}],
+          'versions' : [{"4.05" : 'Privilege Escalation -> To get a RootShell try to run: exploit root_screen45'}],
           "os" : "linux",
           "description" : "Check app screen"
         },'kernel' : {

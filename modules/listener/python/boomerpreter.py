@@ -47,7 +47,6 @@ class BoomerModule(Module):
                     return
                 print("%s bytes have been sent" % str(c))
                 platform = client.recv(1024)
-                print(platform)
                 session_id = self.sessions.set_session(client, platform.decode())
                 self.print_info("Session %s has been created" % str(session_id))
                 res = self.sessions.interact(session_id)

@@ -5,6 +5,7 @@ import json
 from extra_functions.autocomplete import MyCompleter
 from extra_functions.sessions.linux.linux_session import Linux
 from extra_functions.sessions.windows.windows_session import Windows
+from extra_functions.sessions.mac.mac_session import Mac
 
 
 class Session:
@@ -48,8 +49,8 @@ class Session:
                 self.module_session = Windows(self, self.current_session)
                 custom_print.info("Interacting with: " + pl)
             else:
-                custom_print.info("Right now only Linux or Windows are accepted")
-                return
+                self.module_session = Mac(self, self.current_session)
+                custom_print.info("Interacting with: " + pl)
         except Exception as e:
             print(e)
             print("Session no found")

