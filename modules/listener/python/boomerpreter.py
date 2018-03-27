@@ -16,7 +16,7 @@ class BoomerModule(Module):
                 }
         options = {
             "lport": ["Open a local port to receive the connection", 4444, True],
-            "lhost": ["Local host to receive the connection", "192.168.206.128", True]
+            "lhost": ["Local host to receive the connection", "192.168.206.131", True]
             }
         self.sessions = Session.getInstance()
         super(BoomerModule, self).__init__(options,info)
@@ -25,7 +25,7 @@ class BoomerModule(Module):
         # Create a TCP/IP socket
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        sock.settimeout(3)
+        #sock.settimeout(10)
         # Bind the socket to the port
         server_address = (self.options["lhost"][1], int(self.options["lport"][1]))
         print('starting up on %s port %s' % server_address)

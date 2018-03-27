@@ -33,8 +33,10 @@ class Boomerpreter:
         "suid_sgid": "get_suid_sgid",
         "exit": "exit",
         "shell": "get_shell",
-        "root_screen45": "exploit_screen45"
+        "root_screen45": "exploit_screen45",
+        "check_vuln": "check_vuln"
         }
+        
     
     def set_socket(self, s):
         self.socket = s
@@ -150,6 +152,17 @@ class Boomerpreter:
                 time.sleep(1)
         else:
             return "No"
+    
+    def check_vuln(self, request):
+        if len(request) == 0:
+            return "Error: This function needs args"
+        to_check = request[0]
+        try:
+            result =  subprocess.Popen(to_check.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()[0]
+        except:
+            result = "No Found"
+        return result
+
         
     def exploit_screen45(self, request):
         try:

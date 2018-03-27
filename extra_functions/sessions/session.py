@@ -42,11 +42,13 @@ class Session:
             pl = (self.sessions[session_id][1]).lower()
             if "linux" in pl:
                 self.module_session = Linux(self, self.current_session)
+                
                 custom_print.info("Interacting with: " + pl)
             else:
                 custom_print.info("Right now only Linux is accepted")
                 return
-        except:
+        except Exception as e:
+            print(e)
             print("Session no found")
             return
         self.completer.set_backup()
@@ -72,19 +74,7 @@ class Session:
                 if not opt["exec"]:
                     getattr(self.module_session, opt["function"])()
                     continue
-                self.send_msg(client, split_data)
-                if "shell" == data_input.strip():
-                    data = client.recv(4096)
-                    data = data.decode()
-                else:
-                    data = self.recv_msg(client)
-                if len(data) == 0:
-                    raise Exception("Broken pipe")
-                if data:
-                    if "Error" in data:
-                        custom_print.error(data)
-                    else:
-                        getattr(self.module_session, opt["function"])(data)
+                getattr(self.module_session, opt["function"])(split_data)
             except KeyboardInterrupt:
                 self.completer.restore_backup()
                 self._delete_session(session_id)
@@ -111,7 +101,9 @@ class Session:
         }
         if len(msg) > 1:
             data["args"] = msg[1:]
+            
         client.send((json.dumps(data)).encode())
+        return True
     
     def recv_msg(self, client):
         data = client.recv(4096)
