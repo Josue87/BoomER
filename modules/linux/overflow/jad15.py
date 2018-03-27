@@ -13,7 +13,7 @@ class BoomerModule(PayloadModule):
                 "Arch" : "X86"
                 }
         options = {}
-        compatible = ["local/linux/open_local_shell"]
+        compatible = ["local/linux/x86/open_local_shell"]
         super(BoomerModule, self).__init__(options,info, compatible)
                
     def check(self):
