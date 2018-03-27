@@ -4,6 +4,7 @@ import os
 import json
 from extra_functions.autocomplete import MyCompleter
 from extra_functions.sessions.linux.linux_session import Linux
+from extra_functions.sessions.windows.windows_session import Windows
 
 
 class Session:
@@ -42,10 +43,12 @@ class Session:
             pl = (self.sessions[session_id][1]).lower()
             if "linux" in pl:
                 self.module_session = Linux(self, self.current_session)
-                
+                custom_print.info("Interacting with: " + pl)
+            elif "windows" in pl:
+                self.module_session = Windows(self, self.current_session)
                 custom_print.info("Interacting with: " + pl)
             else:
-                custom_print.info("Right now only Linux is accepted")
+                custom_print.info("Right now only Linux or Windows are accepted")
                 return
         except Exception as e:
             print(e)
@@ -107,4 +110,6 @@ class Session:
     
     def recv_msg(self, client):
         data = client.recv(4096)
+        if len(data) == 0:
+            raise Exception("Broken pipe")
         return json.loads(data.decode())

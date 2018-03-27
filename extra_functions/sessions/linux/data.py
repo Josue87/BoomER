@@ -17,3 +17,11 @@ DATA_CHECK = {
           "description" : "Check app Jad"
         }
       }
+
+EXPLOITS = {
+        "root_screen45": {
+          "function": "root_screen45",
+          "os": "linux",
+          "description": "Get a root shell exploiting vulnerability in 'Screen 4.5'"
+        }
+      }

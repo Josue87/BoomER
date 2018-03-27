@@ -1,6 +1,6 @@
 import extra_functions.custom_print as custom_print
 from extra_functions.sessions.model import ModelSession
-from extra_functions.sessions.linux.data import DATA_CHECK
+from extra_functions.sessions.linux.data import DATA_CHECK, EXPLOITS
 
 
 class Linux(ModelSession):
@@ -18,12 +18,12 @@ class Linux(ModelSession):
                             "commmand":"shell", 
                             "exec": True,
                             "param": False},
-                        "root_screen45": {
-                            "function": "root_screen45",
-                            "help": "Try to get a root shell",
-                            "commmand":"root_screen45", 
+                        "exploit": {
+                            "function": "exploit",
+                            "help": "Launch an exploit ",
+                            "commmand":"exploit <opt>", 
                             "exec": True,
-                            "param": False},
+                            "param": True},
                         "check": {
                             "function": "check_vuln",
                             "help": "Check for vulnerabilities",
@@ -68,7 +68,6 @@ class Linux(ModelSession):
         self.send_msg(["check_vuln", to_check], True)
         result = self.recv_msg()
         success = False
-
         for values in check["versions"]:
             data = list(values.items())
             if data[0][0] in result:
@@ -81,6 +80,15 @@ class Linux(ModelSession):
         for k in DATA_CHECK.keys():
             print(k)
             self.check_vuln(["check", k])
+    
+    def exploit(self, data):
+        try:
+            exp = EXPLOITS[data[1]]
+        except:
+            custom_print.info("No exploit...")
+            return
+        function = exp["function"]
+        self.root_screen45([function])
     
     def shell(self, data):
         self.send_msg(data, False)

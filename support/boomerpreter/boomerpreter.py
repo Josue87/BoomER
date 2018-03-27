@@ -34,7 +34,8 @@ class Boomerpreter:
         "exit": "exit",
         "shell": "get_shell",
         "root_screen45": "exploit_screen45",
-        "check_vuln": "check_vuln"
+        "check_vuln": "check_vuln",
+        "unquoted_services": "unquoted_services"
         }
         
     
@@ -62,13 +63,11 @@ class Boomerpreter:
 
     def recv_data(self):
         data = self.socket.recv(1024)
-        #if self.py_version == 3:
         data = data.decode()
         return json.loads(data)
     
     def send_data(self, data):
         data = json.dumps(data)
-        #if self.py_version == 3:
         data = data.encode()
         self.socket.send(data)
     
@@ -80,7 +79,9 @@ class Boomerpreter:
         return "exit"
 
     # CALL FUNCTIONS BEGIN
-   
+   #----------
+   # LINUX
+   #----------
     def get_suid_sgid(self, request):
         if len(request) == 0:
             return "Error: This function needs args"
@@ -160,8 +161,8 @@ class Boomerpreter:
         try:
             result =  subprocess.Popen(to_check.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()[0]
         except:
-            result = "No Found"
-        return result
+            result = b"No Found"
+        return result.decode()
 
         
     def exploit_screen45(self, request):
@@ -174,6 +175,47 @@ class Boomerpreter:
         except:
             return "Error compiling files"
         return "ok"
+
+    #----------
+    # WINDOWS
+    #----------
+    def unquoted_services(self, request):
+        found = False
+        blank = " "
+        result = ""
+        try:
+            services = subprocess.check_output(["sc", "query" ,"type=", "service"], universal_newlines=True)
+            for service in services.split("\n"):
+                # English or Spanish...
+                if "SERVICE_NAME" in service or "NOMBRE_SERVICIO" in service:
+                    data = service.split(":")[1].strip()
+                    try:
+                        info = subprocess.check_output(["sc", "qc", data], universal_newlines=True)
+                        s_name = None
+                        s_path = None
+                        s_start = None
+                        for entry in info.split("\n"):
+                            if ("BINARY_PATH_NAME" in entry or "NOMBRE_RUTA_BINARIO" in entry) \
+                                and ('\"' not in entry):
+                                aux = entry.split(": ")[1].strip()
+                                if (blank in aux.split(" -k ")[0]) and (blank in aux.split(" /")[0]):
+                                    s_name = data
+                                    s_path = aux
+                            elif "SERVICE_START_NAME" in entry or "NOMBRE_INICIO_SERVICIO" in entry:
+                                s_start = entry.split(": ")[1]  
+                        if s_name:
+                            found = True
+                            result += "[*] Service: " + s_name + "\n"
+                            result += "    - Path: " + s_path + "\n"
+                            result += "    - Service Start: " + s_start + "\n"
+                    except:
+                        pass
+        except Exception as e:
+            result = str(e)
+        if not found:
+            result = "No service with these characteristics has been found"
+        
+        return result
         
     # CALL FUNCTIONS END
 
