@@ -1,4 +1,3 @@
-from subprocess import call, Popen, PIPE
 from module_payload import PayloadModule
 
 
