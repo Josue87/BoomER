@@ -21,3 +21,7 @@ To use BoomER, you should use command line, it is very similar to the tools that
 An example for DLL injection:
 
 ![Alt text](https://1.bp.blogspot.com/-SEtYZ7d2Y20/W0D9Gf97ZfI/AAAAAAAAAh0/gdGheA6_dxEzseC8hJsRfOi6PWV-_L1EQCEwYBhgL/s1600/dll-injection-boomer-3.png?raw=true "BoomER")
+
+Our own meterpreter (based on Metasploit):
+
+![Alt text](https://3.bp.blogspot.com/-7MzXtW0EUVA/W1Rwjee4bgI/AAAAAAAAAkE/yRVOFHkC4a8bZYiIhcqUBvEeghjQ4WRJACLcBGAs/s1600/boomerpreter-Exploit.png?raw=true "Boomerpreter")
