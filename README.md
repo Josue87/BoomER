@@ -17,3 +17,7 @@ The framework allows the extension by third parties, through the development of 
 We wanted to give the tool a relationship with Metasploit, as it is the reference framework for pentesters, so from BoomER it is possible to open sessions in Metasploit. 
 
 To use BoomER, you should use command line, it is very similar to the tools that currently exist for the detection and exploitation of vulnerabilities, which helps to reduce the learning curve.
+
+An example for DLL injection:
+
+![Alt text](https://1.bp.blogspot.com/-SEtYZ7d2Y20/W0D9Gf97ZfI/AAAAAAAAAh0/gdGheA6_dxEzseC8hJsRfOi6PWV-_L1EQCEwYBhgL/s1600/dll-injection-boomer-3.png?raw=true "BoomER")
