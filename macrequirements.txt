@@ -1,0 +1,5 @@
+psutil
+boltons>=17.1.0
+pefile
+tabulate==0.7.3
+gnureadline
