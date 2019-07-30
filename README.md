@@ -25,3 +25,15 @@ An example for DLL injection:
 Our own meterpreter (based on Metasploit):
 
 ![Alt text](https://3.bp.blogspot.com/-7MzXtW0EUVA/W1Rwjee4bgI/AAAAAAAAAkE/yRVOFHkC4a8bZYiIhcqUBvEeghjQ4WRJACLcBGAs/s1600/boomerpreter-Exploit.png?raw=true "Boomerpreter")
+
+# Example Videos
+
+### *Metasploit + BoomER - Linux Privilege Escalation*
+[![Metasploit + BoomER - Linux Privilege Escalation](https://img.youtube.com/vi/22uUZ0qKLEs/0.jpg)](https://www.youtube.com/watch?v=22uUZ0qKLEs)
+
+
+### *Python script + DLL Injection with BoomER*
+[![Python script + DLL Injection with BoomER](https://img.youtube.com/vi/We_0tOdgkuc/0.jpg)](https://www.youtube.com/watch?v=We_0tOdgkuc)
+
+### *BoomER - macOS Privilege Escalation*
+[![BoomER - macOS Privilege Escalation](https://img.youtube.com/vi/SMl2wcEo73s/0.jpg)](https://www.youtube.com/watch?v=SMl2wcEo73s)
