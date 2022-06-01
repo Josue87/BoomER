@@ -1,5 +1,0 @@
-show <modules_option> -> List modules availables
-modules_options: 
-    windowsModules, linuxModules, macModules, 
-    allModules, info (module), options (module)
-Example: show linuxModules

@@ -1,3 +1,0 @@
-search <word> -> Search a word within info module
- Example1: search mysql
- Example2: search bypass uac
