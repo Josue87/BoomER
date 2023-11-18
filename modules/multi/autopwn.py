@@ -1,6 +1,5 @@
 import os
 import sys
-
 from os.path import isfile, join, isdir
 
 from extra_functions.load import loadModule
@@ -29,7 +28,7 @@ class BoomerModule(Module):
         elif sys.platform.startswith('mac'):
             current_os = 'mac'
 
-        if current_os == None:
+        if current_os is None:
             self.print_error('The OS is not supported, try to run this module in a Windows, Linux or MacOS.')
             return
 
@@ -38,7 +37,7 @@ class BoomerModule(Module):
             for module in modules:
                 try:
                     module_load = loadModule(module)
-                    self.print_info('Checking module: ' + module)
+                    self.print_info(f'Checking module: {module}')
                     module_load.check()
                 except Exception as e:
                     self.print_error(e)
@@ -46,10 +45,8 @@ class BoomerModule(Module):
             self.print_error(e)
 
     def load_all_os_modules(self, current_os):
-        os_modules_path = 'modules' + os.sep + current_os
-        modules = self.load_modules_from_path(os_modules_path)
-
-        return modules
+        os_modules_path = f'modules{os.sep}{current_os}'
+        return self.load_modules_from_path(os_modules_path)
 
     def load_modules_from_path(self, path):
         modules = []

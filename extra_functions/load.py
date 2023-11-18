@@ -1,6 +1,5 @@
-import sys
-from os import path, sep
 from importlib import import_module
+from os import path, sep
 
 
 def loadModule(module, directory="modules"):
@@ -8,11 +7,11 @@ def loadModule(module, directory="modules"):
         new_module = module.split("/")
         path_aux = path.join(directory, ".".join(new_module))
         if directory != "support/payloads/":
-            path_aux = path_aux.replace(sep,".")
+            path_aux = path_aux.replace(sep, ".")
             moduleAux = import_module(path_aux)
             return moduleAux.BoomerModule()
         else:
-            path_aux = path_aux.replace("/",".")
+            path_aux = path_aux.replace("/", ".")
             moduleAux = import_module(path_aux)
             return moduleAux.Shellcode()
     except Exception as e:

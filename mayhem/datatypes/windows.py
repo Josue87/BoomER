@@ -34,7 +34,6 @@ import ctypes
 import platform
 
 from .structure import MayhemStructure
-from .windows_ntstatus import NTSTATUS_CODES
 
 _IMAGE_NUMBEROF_DIRECTORY_ENTRIES = 16
 is_64bit = platform.architecture()[0] == '64bit'
@@ -93,12 +92,7 @@ LPCVOID = PVOID
 NTSTATUS = ctypes.c_uint32
 
 # platform specific data primitives
-if is_64bit:
-    SIZE_T = ctypes.c_uint64
-else:
-    SIZE_T = ctypes.c_uint32
-
-
+SIZE_T = ctypes.c_uint64 if is_64bit else ctypes.c_uint32
 class LARGE_INTEGER(MayhemStructure):
     _fields_ = [
         ('LowPart', DWORD),

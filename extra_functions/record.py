@@ -1,7 +1,7 @@
-import os
-import readline
 import atexit
+import os
 
+import readline
 
 historyPath = os.path.expanduser("~/.jfhistory_root")
 

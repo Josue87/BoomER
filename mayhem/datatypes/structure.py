@@ -32,5 +32,6 @@
 
 import ctypes
 
+
 class MayhemStructure(ctypes.Structure):
-	pass
+    pass

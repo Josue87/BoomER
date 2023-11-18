@@ -37,8 +37,8 @@ import ctypes
 import os
 import platform
 
-from mayhem.proc import ProcessBase, ProcessError, Hook, MemoryRegion
 from mayhem.datatypes import windows as wintypes
+from mayhem.proc import ProcessBase, ProcessError, Hook, MemoryRegion
 from mayhem.utilities import ctarray_to_bytes, eval_number
 
 CONSTANTS = {
@@ -123,7 +123,7 @@ def flags(flags):
     if flags[0] == '(' and flags[-1] == ')':
         flags = flags[1:-1]
     for sop in supported_operators:
-        flags = flags.replace(sop, ' ' + sop + ' ')
+        flags = flags.replace(sop, f' {sop} ')
     flags = flags.split()
     parsed_flags = 0
     last_operator = None
@@ -218,10 +218,10 @@ class WindowsProcess(ProcessBase):
     def get_proc_attribute(self, attribute):
         requested_attribute = attribute
         if attribute.startswith('&'):
-            attribute = attribute[1:] + '_addr'
-        if hasattr(self, '_get_attr_' + attribute):
-            return getattr(self, '_get_attr_' + attribute)()
-        raise ProcessError('Unknown Attribute: ' + requested_attribute)
+            attribute = f'{attribute[1:]}_addr'
+        if hasattr(self, f'_get_attr_{attribute}'):
+            return getattr(self, f'_get_attr_{attribute}')()
+        raise ProcessError(f'Unknown Attribute: {requested_attribute}')
 
     def _get_attr_peb_addr(self):
         process_basic_information = wintypes.PROCESS_BASIC_INFORMATION()
@@ -282,7 +282,7 @@ class WindowsProcess(ProcessBase):
 
         import_directory = optional_header.DataDirectory[IMAGE_DIRECTORY_ENTRY_IMPORT]
         _import_descriptors = wintypes.IMAGE_IMPORT_DESCRIPTOR * (
-        (import_directory.Size / ctypes.sizeof(wintypes.IMAGE_IMPORT_DESCRIPTOR)) - 1)
+                (import_directory.Size / ctypes.sizeof(wintypes.IMAGE_IMPORT_DESCRIPTOR)) - 1)
         import_descriptors = _import_descriptors()
         self.k32.ReadProcessMemory(self.handle, image_dos_header_addr + import_directory.VirtualAddress,
                                    ctypes.byref(import_descriptors), ctypes.sizeof(import_descriptors), 0)
@@ -300,8 +300,7 @@ class WindowsProcess(ProcessBase):
         self.k32.ReadProcessMemory(self.handle, image_dos_header_addr + ilt_ent + ctypes.sizeof(wintypes.WORD),
                                    ctypes.byref(name), ctypes.sizeof(name), 0)
         name = ''.join(name)
-        name = name.split('\x00')[0]
-        return name
+        return name.split('\x00')[0]
 
     def _get_ordinal_for_ilt_entry(self, ilt_ent):
         return (ilt_ent & 0x7FFFFFFF)
@@ -313,8 +312,7 @@ class WindowsProcess(ProcessBase):
         self.k32.ReadProcessMemory(self.handle, image_dos_header_addr + iid.Name, ctypes.byref(name),
                                    ctypes.sizeof(name), 0)
         name = ''.join(name)
-        name = name.split('\x00')[0]
-        return name
+        return name.split('\x00')[0]
 
     def _get_ilt_for_image_import_descriptor(self, iid):  # import lookup table
         image_dos_header_addr = self.get_proc_attribute('image_dos_header_addr')
@@ -400,9 +398,16 @@ class WindowsProcess(ProcessBase):
         MEM_PRIVATE = flags('MEM_PRIVATE')
         PROTECT_FLAGS = {0x01: '---', 0x02: 'r--', 0x04: 'rw-', 0x08: 'r--', 0x10: '--x', 0x20: 'r-x', 0x40: 'rwx',
                          0x80: 'r-x'}
-        while address_cursor < sys_info.lpMaximumApplicationAddress:
-            if VirtualQueryEx(self.handle, address_cursor, ctypes.byref(meminfo), ctypes.sizeof(meminfo)) == 0:
-                break
+        while (
+                address_cursor < sys_info.lpMaximumApplicationAddress
+                and VirtualQueryEx(
+            self.handle,
+            address_cursor,
+            ctypes.byref(meminfo),
+            ctypes.sizeof(meminfo),
+        )
+                != 0
+        ):
             address_cursor = meminfo.BaseAddress + meminfo.RegionSize
             if not meminfo.State & MEM_COMMIT:
                 continue
@@ -521,8 +526,9 @@ class WindowsProcess(ProcessBase):
     def allocate(self, size=0x400, address=None, permissions=None):
         alloc_type = flags('MEM_COMMIT')
         permissions = flags(permissions or 'PAGE_EXECUTE_READWRITE')
-        result = self.k32.VirtualAllocEx(self.handle, address, size, alloc_type, permissions)
-        return result
+        return self.k32.VirtualAllocEx(
+            self.handle, address, size, alloc_type, permissions
+        )
 
     def free(self, address):
         free_type = flags('MEM_RELEASE')
@@ -551,7 +557,7 @@ class WindowsProcess(ProcessBase):
         VIRTUAL_MEM = (0x1000 | 0x2000)
         PAGE_EXECUTE_READWRITE = 0x00000040
         shellcode_address = self.k32.VirtualAllocEx(self.handle, 0, len(shellcode), VIRTUAL_MEM,
-            PAGE_EXECUTE_READWRITE)
+                                                    PAGE_EXECUTE_READWRITE)
         # shellcode_address = self.allocate(size=utilities.align_up(len(shellcode)), permissions='PAGE_READWRITE')
         w = ctypes.c_int(0)
         self.k32.WriteProcessMemory(self.handle, shellcode_address, shellcode, len(shellcode), ctypes.byref(w))

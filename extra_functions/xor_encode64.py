@@ -1,5 +1,4 @@
 import struct
-import sys
 
 
 class Encoder64():
@@ -10,7 +9,7 @@ class Encoder64():
         self.shellcode = sh
         block = -(((len(self.shellcode) - 1) / 8) + 1)
         aux = struct.pack('<l', int(block))
-        self.decoder64 = self.decoder64 % aux
+        self.decoder64 %= aux
         self.key = 0
         self.badchars = bc.split(",")
 
@@ -21,9 +20,9 @@ class Encoder64():
             exit = True
             self.key += 1
             for s in self.shellcode:
-                value = str(hex(s ^ self.key))
+                value = hex(s ^ self.key)
                 if len(value) == 3:
-                    value = value[0:2] + "0" + value[2:]
+                    value = f"{value[:2]}0{value[2:]}"
                 if "\\" + value[1:] in self.badchars:
                     shellcode2 = []
                     exit = False
@@ -37,7 +36,7 @@ class Encoder64():
         shellcode2 = self._convert()
 
         aux = b""
-        for k in range(8):
+        for _ in range(8):
             aux += struct.pack('B', self.key)
 
         aux_dec = aux_dec.replace(b'XXXXXXXX', aux)
@@ -45,7 +44,7 @@ class Encoder64():
         for d in aux_dec:
             aux = hex(d)
             if len(aux) == 3:
-                aux = aux[0:2] + "0" + aux[2:]
+                aux = f"{aux[:2]}0{aux[2:]}"
             aux = "\\" + aux[1:]
             return_decoder += aux.encode()
 
@@ -53,7 +52,7 @@ class Encoder64():
         for s in shellcode2:
             aux = s
             if len(aux) == 3:
-                aux = aux[0:2] + "0" + aux[2:]
+                aux = f"{aux[:2]}0{aux[2:]}"
             aux = "\\" + aux[1:]
             return_shell += aux.encode()
         return (return_decoder.decode() + return_shell.decode()).encode()
