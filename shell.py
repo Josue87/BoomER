@@ -1,8 +1,11 @@
+import contextlib
 import os
 from os import sep, walk
+
 try:
     import readline
     import rlcompleter
+
     if 'libedit' in readline.__doc__:
         readline.parse_and_bind("bind ^I rl_complete")
     else:
@@ -25,7 +28,7 @@ class Shell():
         self.myModule = None
         self._options_start = {
             "load": "load <module> -> Load the module to use",
-            "show":"show <modules_option> -> List modules availables",
+            "show": "show <modules_option> -> List modules availables",
             "search": "search <word> -> Search a word within info module",
             "help": "help -> Show this help",
             "clear": "clear -> Clear console log",
@@ -35,7 +38,7 @@ class Shell():
         }
         start_record()  # To save records
 
-    #Use to init completer 
+    # Use to init completer 
     def initial(self):
         self.completer = MyCompleter.getInstance(self._options_start.keys(), self)
         readline.set_history_length(50)  # max 50
@@ -48,25 +51,25 @@ class Shell():
         if module is None:
             return "BoomER >> "
         else:
-            return "BoomER" + color.RED + " |_" + color.YELLOW + str(module) + color.RED + "_|" + color.RESET + " >> "
+            return f"BoomER{color.RED} |_{color.YELLOW}{str(module)}{color.RED}_|{color.RESET} >> "
 
-    #This function is called with help command (argument are optional)
+    # This function is called with help command (argument are optional)
     def help(self, arg=""):
         if arg != "":
-            aux = "Help to " + arg
-            name = "help" + sep + "%s" + sep + arg + ".txt"
+            aux = f"Help to {arg}"
+            name = f"help{sep}%s{sep}{arg}.txt"
             try:
-                file_open = name %("tool")
+                file_open = name % ("tool")
                 f = open(file_open, 'r')
-            except:
+            except Exception:
                 try:
-                    file_open = name %("modules")
+                    file_open = name % ("modules")
                     f = open(file_open, 'r')
                     if not self.myModule:
                         custom_print.info("To see this help, first load a module")
                         return
-                except:
-                    custom_print.info(aux + " doesn't exist...")
+                except Exception:
+                    custom_print.info(f"{aux} doesn't exist...")
                     return
             print("\n" + aux)
             print("-" * len(aux) + "\n")
@@ -80,28 +83,26 @@ class Shell():
                     value = value[0]
                 print(key + ":\n " + value)
             print("")
-            if(self.myModule is not None):
+            if (self.myModule is not None):
                 self.myModule.help()
 
-    #This function is called with load command
+    # This function is called with load command
     def load(self, module):
-        try:
+        with contextlib.suppress(Exception):
             self.completer.remove_options(self.myModule.get_all_operations())
-        except:
-            pass
         module_load = loadModule(module)
-        if(module_load is None):
+        if (module_load is None):
             custom_print.error("Error loading module")
             return None
-        custom_print.ok(str(module) + " loaded correctly")
-        self.nameModule = module 
+        custom_print.ok(f"{str(module)} loaded correctly")
+        self.nameModule = module
         self.myModule = module_load
         try:
             self.completer.extend_completer(self.myModule.get_all_operations())
         except Exception as e:
             print(e)
 
-    #This function is called whit show command
+    # This function is called whit show command
     def show(self, option):
         var = "modules"
         if "windows" in option:
@@ -120,15 +121,15 @@ class Shell():
             self.myModule.show(option)
             return
         else:
-            custom_print.error("show >> try with other option. " + option + " not found...")
+            custom_print.error(f"show >> try with other option. {option} not found...")
             return
 
         for root, dirs, files in walk(var):
             for file in files:
-                if ".py" == file[-3:] and file != "model.py" and file[0] != "_":
+                if file[-3:] == ".py" and file != "model.py" and file[0] != "_":
                     path = root.split(sep)[1:]
-                    print(sep.join(path) + sep + file.split(".py")[0])  
-    
+                    print(sep.join(path) + sep + file.split(".py")[0])
+
     def sessions(self):
         op_se = self.open_sessions.get_sessions()
         if len(op_se) == 0:
@@ -136,8 +137,8 @@ class Shell():
             return
         for sid, data in op_se.items():
             addr = data[0].getpeername()
-            print(str(sid) + " -> " + addr[0] + ":" + str(addr[1]) + " -- " + data[1])
-    
+            print(f"{str(sid)} -> {addr[0]}:{str(addr[1])} -- {data[1]}")
+
     def interact(self, id=None):
         if not id:
             custom_print.error("It's necessary an ID")
@@ -151,22 +152,22 @@ class Shell():
         self.initial()
         banner()
         self.treat_input()
-    
+
     def treat_input(self):
         operation = ""
         while True:
             if (self.myModule is None):
                 operation = input(self.prompt())
             else:
-                #to get name module
+                # to get name module
                 ml = self.nameModule.split(sep)
-                operation = input(self.prompt(ml[len(ml)-1]))
+                operation = input(self.prompt(ml[len(ml) - 1]))
             op = operation.strip()
             op = self.strip_own(op)
             if (len(op) == 0):
                 continue
             op[0] = op[0].lower()
-            if(op[0] == "exit"):
+            if (op[0] == "exit"):
                 print("Closing BoomER")
                 exit(0)
             try:
@@ -191,35 +192,34 @@ class Shell():
                 getattr(self, op[0])(op[1])
         else:
             if not self.myModule:
-                raise Exception("Command " + op[0] + " not found. Try to load a module")
-            else:
-                if op[0] in self.myModule.get_single_operations():
-                    # before run --> check if all options have a correct value
-                    if op[0] == "run":
-                        self.myModule.check_module()
-                    getattr(self.myModule, op[0])()
-                elif op[0] in self.myModule.get_parameter_operations():
-                    if len(op) >= 2:
-                        getattr(self.myModule, op[0])(op[1])
-                    else:
-                        raise Exception("positional argument")
-                elif op[0] in self.myModule.get_multiple_parameter_operations():
-                    if len(op) >= 2:
-                        getattr(self.myModule, op[0])(op[1:])
-                    else:
-                        raise Exception("positional argument")
+                raise Exception(f"Command {op[0]} not found. Try to load a module")
+            if op[0] in self.myModule.get_single_operations():
+                # before run --> check if all options have a correct value
+                if op[0] == "run":
+                    self.myModule.check_module()
+                getattr(self.myModule, op[0])()
+            elif op[0] in self.myModule.get_parameter_operations():
+                if len(op) >= 2:
+                    getattr(self.myModule, op[0])(op[1])
                 else:
-                    raise Exception("Command " + op[0] + " not found")
+                    raise Exception("positional argument")
+            elif op[0] in self.myModule.get_multiple_parameter_operations():
+                if len(op) >= 2:
+                    getattr(self.myModule, op[0])(op[1:])
+                else:
+                    raise Exception("positional argument")
+            else:
+                raise Exception(f"Command {op[0]} not found")
 
-    #Remove current module
+    # Remove current module
     def back(self):
         self.completer.reset()
         self.myModule = None
 
     @staticmethod
     def strip_own(line):
-        #Remove all "" in the list
-        #Help to accept execution like this: put test    value
+        # Remove all "" in the list
+        # Help to accept execution like this: put test    value
         mylist = line.split(" ")
         while "" in mylist:
             mylist.remove("")

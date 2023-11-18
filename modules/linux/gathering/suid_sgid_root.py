@@ -1,39 +1,40 @@
-from module import Module
-from stat import S_ISUID, S_ISGID
+from multiprocessing.dummy import Pool
 from os import stat, listdir, walk
 from os.path import isfile, join
-from multiprocessing.dummy import Pool
+from stat import S_ISUID, S_ISGID
+
+from module import Module
+
 
 class BoomerModule(Module):
     def __init__(self):
         info = {"Name": "SUID Root files",
                 "Author": "Josue Encinar",
                 "Description": "Module to find files with setuid Root",
-        }
+                }
         options = {
             "recursive": ["Check all files from option path", True, False],
             "path": ["Path to check", "/", False],
             "file": ["File to dump results", "files/output/suid_sgid_root.txt", True]
         }
-        super(BoomerModule, self).__init__(options,info)
-        
-    def run(self):
-        file_w = open(self.options["file"][1], "w")
-        my_dir = self.options["path"][1] or "/"
-        if not my_dir.endswith("/"):
-            my_dir = my_dir + "/"
-        results = self.recursive(my_dir) if self.options["recursive"][1]\
-                 else self.no_recursive(my_dir)
-        suid = results[0]
-        sgid = results[1]
+        super(BoomerModule, self).__init__(options, info)
 
-        file_w.write("__SUID ROOT ACTIVE__\n")
-        for f_suid in suid:
-            file_w.write(f_suid + "\n")
-        file_w.write("__SGID ROOT ACTIVE__\n")
-        for f_sgid in sgid:
-            file_w.write(f_sgid + "\n")
-        file_w.close()
+    def run(self):
+        with open(self.options["file"][1], "w") as file_w:
+            my_dir = self.options["path"][1] or "/"
+            if not my_dir.endswith("/"):
+                my_dir = f"{my_dir}/"
+            results = self.recursive(my_dir) if self.options["recursive"][1] \
+                else self.no_recursive(my_dir)
+            suid = results[0]
+            sgid = results[1]
+
+            file_w.write("__SUID ROOT ACTIVE__\n")
+            for f_suid in suid:
+                file_w.write(f_suid + "\n")
+            file_w.write("__SGID ROOT ACTIVE__\n")
+            for f_sgid in sgid:
+                file_w.write(f_sgid + "\n")
         self.print_ok("Check the file " + self.options["file"][1] + " to view the results")
 
     def no_recursive(self, my_dir):
@@ -55,12 +56,8 @@ class BoomerModule(Module):
         files_sgid = []
         files_list = []
         for cpwd, dirs, files in walk(my_dir):
-            if cpwd.endswith("/"):
-                cwd = cpwd
-            else:
-                cwd = cpwd + "/"
-            for f in files:
-                files_list.append(cwd + f)
+            cwd = cpwd if cpwd.endswith("/") else f"{cpwd}/"
+            files_list.extend(cwd + f for f in files)
         pool = Pool(8)
         results = pool.map(self.is_suid_sgid, files_list)
         pool.close()
@@ -78,16 +75,16 @@ class BoomerModule(Module):
         try:
             f = stat(file_name)
             mode = f.st_mode
-        except:
+        except Exception:
             return [None, None]
         if (mode & S_ISUID) == 2048:
-            print("SUID: " + file_name)
+            print(f"SUID: {file_name}")
             results.append(file_name)
         else:
             results.append(None)
 
         if (mode & S_ISGID) == 1024:
-            print("SGIG: " + file_name)
+            print(f"SGIG: {file_name}")
             results.append(file_name)
         else:
             results.append(None)

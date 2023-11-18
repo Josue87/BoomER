@@ -1,22 +1,24 @@
 import ctypes
+import sys
+from platform import architecture
 
 import psutil
-import sys
 
 from mayhem.proc.windows import WindowsProcess
 from module import Module
 
-from platform import architecture
-
 
 class BoomerModule(Module):
-
     process_handle = None
     pid = None
     dll = None
     dll_handle = None
 
-    def __init__(self, options={}, info={}):
+    def __init__(self, options=None, info=None):
+        if options is None:
+            options = {}
+        if info is None:
+            info = {}
         if len(info) == 0:
             info = {
                 "Name": "DLL Injection - CreateRemoteThread Method",
@@ -35,7 +37,6 @@ class BoomerModule(Module):
         else:
             self.print_info("Process and DLL to injec must be 32 bits")
         super(BoomerModule, self).__init__(options, info)
-
 
     def run(self):
         validation_message = self.initial_validation()
@@ -57,44 +58,45 @@ class BoomerModule(Module):
         self.close_process_handle()
 
     def pid_initialization(self):
-        if self.options.get('pid')[1] == "" or self.options.get('pid')[1] == None:
+        if self.options.get('pid')[1] == "" or self.options.get('pid')[1] is None:
             self.pid = self.get_pid_by_process_name(self.options.get('process_name')[1])
         else:
             self.pid = int(self.options.get('pid')[1])
 
     def inject_dll(self, dll_path):
-        result = True
-        if self.pid != None:
-            # Getting process handler
-            try:
-                arch = self.get_arch()
-                self.process_handle = WindowsProcess(pid=self.pid, arch=arch)
-            except Exception as error:
-                self.print_error("{0}".format(error.msg))
-                return False
+        if self.pid is None:
+            return
+        # Getting process handler
+        try:
+            arch = self.get_arch()
+            self.process_handle = WindowsProcess(pid=self.pid, arch=arch)
+        except Exception as error:
+            self.print_error("{0}".format(error.msg))
+            return False
 
-            self.print_info("Opened a handle to pid: {0}".format(self.pid))
+        self.print_info("Opened a handle to pid: {0}".format(self.pid))
 
-            # Finding and injecting dll
-            self.dll = ctypes.util.find_library(dll_path)
-            if self.dll:
-                self.print_info("Found DLL at: {0}".format(self.dll))
-            else:
-                self.print_error('Failed to find the DLL in the system')
-                return False
+        # Finding and injecting dll
+        self.dll = ctypes.util.find_library(dll_path)
+        if self.dll:
+            self.print_info("Found DLL at: {0}".format(self.dll))
+        else:
+            self.print_error('Failed to find the DLL in the system')
+            return False
 
-            # Loading DLL into the process
-            self.print_info('Loading DLL into the process...')
-            try:
-                self.dll_handle = self.process_handle.load_library(self.dll)
-            except Exception as error:
-                print("[-] {0}".format(error.msg))
-                return False
-            else:
-                self.print_ok(
-                    "Loaded {0} into process with pid {1} with handle 0x{2:08x}".format(self.dll, self.pid, self.dll_handle))
+        # Loading DLL into the process
+        self.print_info('Loading DLL into the process...')
+        try:
+            self.dll_handle = self.process_handle.load_library(self.dll)
+        except Exception as error:
+            print("[-] {0}".format(error.msg))
+            return False
+        else:
+            self.print_ok(
+                "Loaded {0} into process with pid {1} with handle 0x{2:08x}".format(self.dll, self.pid,
+                                                                                    self.dll_handle))
 
-            return result
+        return True
 
     def initial_validation(self):
         # Validate that there is an option set for pid and process_name
@@ -106,29 +108,30 @@ class BoomerModule(Module):
             return "This module is only available on Windows"
 
     def platform_validation(self):
-        result = True
-        if not sys.platform.startswith('win'):
-            result = False
-        return result
+        return bool(sys.platform.startswith('win'))
 
     def input_validation(self):
-        result = True
         option_pid = self.options.get("pid")[1]
         option_process_name = self.options.get("process_name")[1]
-        if (option_pid == None or option_pid == "") and (option_process_name == None or option_process_name == ""):
-            result = False
-        return result
+        return (
+                option_pid is not None
+                and option_pid != ""
+                or option_process_name is not None
+                and option_process_name != ""
+        )
 
     def get_arch(self):
         return architecture()[0]
 
     def get_pid_by_process_name(self, process_name):
-        pid = None
-        for proc in psutil.process_iter():
-            if proc.name() == process_name:
-                pid = proc.pid
-                break
-        return pid
+        return next(
+            (
+                proc.pid
+                for proc in psutil.process_iter()
+                if proc.name() == process_name
+            ),
+            None,
+        )
 
     def close_process_handle(self):
         self.process_handle.close()

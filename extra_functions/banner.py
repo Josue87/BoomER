@@ -4,7 +4,7 @@ import extra_functions.color as color
 
 def banner():
     r = random.random()
-    if r <0.25:
+    if r < 0.25:
         draw1()
     elif r < 0.5:
         draw2()
@@ -15,8 +15,11 @@ def banner():
     print("""\n Authors: Josue Encinar & Antonio Marcos
    >>> Conceived by Pablo Gonzalez \n""")
 
+
 def draw1():
-    print("""
+    print(
+        (
+            """
           xx                  xx
          xxxx                xxxx
          xxxxx              xxxxx
@@ -31,10 +34,16 @@ def draw1():
         xxxxxxx            xxxxxxx
          xxxxxx            xxxxxx
            xx                xx
-    """ %(color.RED + "__BoomER_" + color.RESET))
+    """
+            % f"{color.RED}__BoomER_{color.RESET}"
+        )
+    )
+
 
 def draw2():
-    print("""
+    print(
+        (
+            """
         
          ▌▌  ▄▌▐▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▌
       ▄▄██▌█   --- %s ---                   
@@ -43,23 +52,52 @@ def draw2():
    ███████▌█▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▌  ~~~
    ▀(·)▀▀▀▀▀▀▀(·)(·)▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀(·)▀▀▀ ~~~
 --------------------------------------------------
-    """%(color.YELLOW + "L0c4l Expl0iting" + color.RESET, color.RED + "BoomER" + color.RESET ))
+    """
+            % (
+                f"{color.YELLOW}L0c4l Expl0iting{color.RESET}",
+                f"{color.RED}BoomER{color.RESET}",
+            )
+        )
+    )
 
 
 def draw3():
-    print("""
+    print(
+        (
+            """
   ####
  #    #       %s
  #    ######################
  #    #   %s
   ####
-"""%(color.YELLOW + "BoomER" + color.RESET, color.RED + "L0c4l Expl0iting" + color.RESET ))
+"""
+            % (
+                f"{color.YELLOW}BoomER{color.RESET}",
+                f"{color.RED}L0c4l Expl0iting{color.RESET}",
+            )
+        )
+    )
+
 
 def draw4():
-    print(color.RED + "####################################################################" + color.RESET + """ 
+    print(
+        (
+            (
+                (
+                    (
+                        f"{color.RED}####################################################################{color.RESET}"
+                        + """ 
   $$$$$$    $$$$$$    $$$$$$   $$$$      $$$$  $$$$$$$  $$$$$$$$
   $$   $$  $$    $$  $$    $$  $$ $$    $$ $$  $$       $$    $$
   $$$$$$   $$    $$  $$    $$  $$  $$  $$  $$  $$$$$$$  $$$$$$$
   $$   $$  $$    $$  $$    $$  $$   $$$$   $$  $$       $$    $$$
   $$$$$$    $$$$$$    $$$$$$   $$    $$    $$  $$$$$$$  $$      $$
-"""+color.RED+"####################################################################" + color.RESET)
+"""
+                    )
+                    + color.RED
+                )
+                + "####################################################################"
+            )
+            + color.RESET
+        )
+    )

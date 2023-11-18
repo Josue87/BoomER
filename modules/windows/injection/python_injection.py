@@ -2,13 +2,10 @@ import ctypes
 import os
 import sys
 
-from platform import architecture
-
 from modules.windows.injection.dll_injection2 import BoomerModule as DLLInjectionModule
 
 
 class BoomerModule(DLLInjectionModule):
-
     kernel32 = ctypes.windll.kernel32
     python_payload = None
 
@@ -37,7 +34,7 @@ class BoomerModule(DLLInjectionModule):
         self.pid_initialization()
         self.python_payload = self.load_python_payload()
 
-        if self.python_payload == None:
+        if self.python_payload is None:
             self.print_error("There was an error getting the python payload. The injection won't continue.")
 
         # Generating python dll name (depends of the version)
@@ -58,11 +55,11 @@ class BoomerModule(DLLInjectionModule):
 
         # Getting the address of the DLL function Py_InitializeEx
         py_initialize_ex = self.dll_handle + (
-        self.kernel32.GetProcAddress(local_handle, b'Py_InitializeEx\x00') - local_handle)
+                self.kernel32.GetProcAddress(local_handle, b'Py_InitializeEx\x00') - local_handle)
 
         # Getting the address of the DLL function PyRun_SimpleString
         py_run_simple_string = self.dll_handle + (
-            self.kernel32.GetProcAddress(local_handle, b'PyRun_SimpleString\x00') - local_handle)
+                self.kernel32.GetProcAddress(local_handle, b'PyRun_SimpleString\x00') - local_handle)
         self.print_info('Resolved addresses:')
         self.print_info("  - Py_InitializeEx:    0x{0:08x}".format(py_initialize_ex))
         self.print_info("  - PyRun_SimpleString: 0x{0:08x}".format(py_run_simple_string))
@@ -88,21 +85,20 @@ class BoomerModule(DLLInjectionModule):
     def initial_validation(self):
         result = super(BoomerModule, self).initial_validation()
 
-        if result == None:
-            # Validate that there is an option set for python_payload and python_payload_path
-            if not self.payload_validation():
-                return "It's mandatory to specify a python payload or the path where the payload is"
+        if result is None and not self.payload_validation():
+            return "It's mandatory to specify a python payload or the path where the payload is"
 
         return result
-
 
     def payload_validation(self):
-        result = True
         option_py_payload = self.options.get("py_payload")[1]
         option_py_payload_path = self.options.get("py_payload_path")[1]
-        if (option_py_payload == None or option_py_payload == "") and (option_py_payload_path == None or option_py_payload_path == ""):
-            result = False
-        return result
+        return (
+                option_py_payload is not None
+                and option_py_payload != ""
+                or option_py_payload_path is not None
+                and option_py_payload_path != ""
+        )
 
     def load_python_payload(self):
         result = None
@@ -119,8 +115,11 @@ class BoomerModule(DLLInjectionModule):
     def load_python_payload_from_path(self, option_py_payload_path):
         result = None
 
-        if option_py_payload_path != None and option_py_payload_path != "" and not os.path.isfile(option_py_payload_path):
-            self.print_error("The path: " + option_py_payload_path + " doesn't exists in the system")
+        if option_py_payload_path != None and option_py_payload_path != "" and not os.path.isfile(
+                option_py_payload_path):
+            self.print_error(
+                f"The path: {option_py_payload_path} doesn't exists in the system"
+            )
             return result
 
         with open(option_py_payload_path, 'r') as myfile:
@@ -130,8 +129,3 @@ class BoomerModule(DLLInjectionModule):
             result = None
 
         return result
-
-
-
-
-

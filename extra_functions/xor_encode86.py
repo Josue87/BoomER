@@ -1,7 +1,3 @@
-import struct
-import sys
-
-
 class Encoder86():
 
     def __init__(self, sh, bc):
@@ -18,13 +14,13 @@ class Encoder86():
             exit = True
             key += 1
             for s in sc:
-                value =  str(hex(s ^ key))
+                value = hex(s ^ key)
                 if value == 0:
                     shellcode2 = []
                     exit = False
                     break
                 if len(value) == 3:
-                    value = value[0:2] + "0" + value[2:]
+                    value = f"{value[:2]}0{value[2:]}"
                 value = "\\" + value[1:]
                 shellcode2.append(value)
         return key, shellcode2
@@ -34,17 +30,10 @@ class Encoder86():
         shell_c = "".join(sh)
         print(shell_c)
         decoder2 = []
-        i = 0
-
-        for d in self.decoder32:
-            if i == 16:
-                aux = hex(key)
-            else:
-                aux = str(hex(d))
+        for i, d in enumerate(self.decoder32):
+            aux = hex(key) if i == 16 else hex(d)
             if len(aux) == 3:
-                aux = aux[0:2] + "0" + aux[2:]
+                aux = f"{aux[:2]}0{aux[2:]}"
             aux = "\\" + aux[1:]
             decoder2.append(aux)
-            i += 1
-
         return ("".join(decoder2) + shell_c).encode()

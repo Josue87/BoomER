@@ -33,9 +33,9 @@
 import ctypes
 import os
 import sys
-from _cffi_backend import buffer
 
 import boltons.iterutils
+from _cffi_backend import buffer
 
 
 def architecture_is_32bit(arch):
@@ -45,7 +45,7 @@ def architecture_is_32bit(arch):
     :param str arch: The value to check.
     :rtype: bool
     """
-    return bool(arch.lower() in ('i386', 'i686', 'x86'))
+    return arch.lower() in ('i386', 'i686', 'x86')
 
 
 def architecture_is_64bit(arch):
@@ -55,7 +55,7 @@ def architecture_is_64bit(arch):
     :param str arch: The value to check.
     :rtype: bool
     """
-    return bool(arch.lower() in ('amd64', 'x86_64'))
+    return arch.lower() in ('amd64', 'x86_64')
 
 
 def align_down(number, alignment=16):

@@ -1,15 +1,16 @@
 import argparse
-
-import psutil, os.path
-from psutil import AccessDenied
-import sys
-from ctypes import *
-import argparse
+import contextlib
 import ctypes
 import ctypes.util
 import os
-sys.path.insert(1, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+import sys
+from ctypes import *
 
+import os.path
+import psutil
+from psutil import AccessDenied
+
+sys.path.insert(1, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 INJECTION_STUB_TEMPLATE = r"""
 import codecs
@@ -32,7 +33,6 @@ PIPE_NAME = 'mayhem'
 
 
 def inject_dll(pid, dll_path):
-
     PAGE_READWRITE = 0x04
     PROCESS_ALL_ACCESS = (0x00F0000 | 0x00100000 | 0xFFF)
     VIRTUAL_MEM = (0x1000 | 0x2000)
@@ -44,8 +44,8 @@ def inject_dll(pid, dll_path):
     h_process = kernel32.OpenProcess(PROCESS_ALL_ACCESS, False, int(pid))
 
     if not h_process:
-        print("[!] Couldn't get handle to PID: %s" % (pid))
-        print("[!] Are you sure %s is a valid PID?" % (pid))
+        print(f"[!] Couldn't get handle to PID: {pid}")
+        print(f"[!] Are you sure {pid} is a valid PID?")
         sys.exit(0)
 
     # Allocate space for DLL path
@@ -111,7 +111,7 @@ def inject_dll2(pid, dll_path):
     local_handle = kernel32.GetModuleHandleW(python_lib)
     py_initialize_ex = python_lib_h + (kernel32.GetProcAddress(local_handle, b'Py_InitializeEx\x00') - local_handle)
     py_run_simple_string = python_lib_h + (
-    kernel32.GetProcAddress(local_handle, b'PyRun_SimpleString\x00') - local_handle)
+            kernel32.GetProcAddress(local_handle, b'PyRun_SimpleString\x00') - local_handle)
     print('[*] Resolved addresses:')
     print("  - Py_InitializeEx:    0x{0:08x}".format(py_initialize_ex))
     print("  - PyRun_SimpleString: 0x{0:08x}".format(py_run_simple_string))
@@ -138,24 +138,18 @@ def inject_dll2(pid, dll_path):
     process_h.join_thread(thread_h)
     process_h.close()
 
+
 def get_all_dlls_by_process_pid(pid):
-    try:
+    with contextlib.suppress(AccessDenied):
         if not psutil.pid_exists(pid):
-            print('There is no process running with PID: ' + str(pid))
-            # return;
+            print(f'There is no process running with PID: {str(pid)}')
+                    # return;
 
         p = psutil.Process(pid)
-        dll_list = []
-        for dll in p.memory_maps():
-            if(dll.path[-3:] == "dll"):
-                # print("Service name: " + p.name() + "- path: " + dll.path)
-                dll_list.append(dll.path)
-
+        dll_list = [dll.path for dll in p.memory_maps() if (dll.path[-3:] == "dll")]
         for dll in dll_list:
             if not os.path.isfile(dll):
-                print(dll + 'doesnt exists!! - PID: ' + str(pid))
-    except AccessDenied:
-        pass
+                print(f'{dll}doesnt exists!! - PID: {str(pid)}')
         # print("Access denied for this process.")
 
 
